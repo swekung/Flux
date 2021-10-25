@@ -1,3 +1,9 @@
+//
+// FIT
+// encodes FITjs format into .FIT binary
+// reads .FIT binary into FITjs format
+//
+
 import { exists, empty, isUndefined,
          map, first, last, traverse,
          nthBitToBool, toUint8Array,

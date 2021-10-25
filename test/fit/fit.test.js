@@ -7,7 +7,6 @@ import { appTypes } from '../../src/fit/profiles.js';
 import { localMessageDefinitions as lmd } from './local-message-definitions.js';
 import { data } from './data.js';
 import { fit } from '../../src/fit/fit.js';
-import { activity } from '../../src/fit/activity.js';
 
 
 
