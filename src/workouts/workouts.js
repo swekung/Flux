@@ -155,7 +155,7 @@ let workouts =
     <author>Marinov</author>
     <name>Maple</name>
     <effort-type>Sweet Spot</effort-type>
-    <description>4 times 10 min Sweet Spot intervals with 5 min recovery in between and warm-up Ramp.</description>
+    <description>4 times 10 min Sweet Spot intervals with 5 min recovery in between.</description>
     <sportType>bike</sportType>
     <tags>
         <tag name="sweet"/>
@@ -166,6 +166,35 @@ let workouts =
         <IntervalsT Repeat="2" OnDuration="30" OffDuration="30" OnPower="1.08" OffPower="0.44"/>
         <SteadyState Duration="180" Power="0.44"/>
         <IntervalsT Repeat="4" OnDuration="600" OffDuration="300" OnPower="0.92" OffPower="0.44"/>
+        <Cooldown Duration="600" PowerLow="0.32" PowerHigh="0.44"/>
+    </workout>
+</workout_file>`
+,
+`<workout_file>
+    <author>Marinov</author>
+    <name>Maple +1</name>
+    <effort-type>Sweet Spot</effort-type>
+    <description>6 times 10 min Sweet Spot intervals with 2 min recovery between intervals and 4 minutes between sets.</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="sweet"/>
+        <tag name="spot"/>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.32" PowerHigh="0.75"/>
+        <IntervalsT Repeat="2" OnDuration="30" OffDuration="30" OnPower="1.08" OffPower="0.44"/>
+        <SteadyState Duration="180" Power="0.44"/>
+        <SteadyState Duration="600" Power="0.92"/>
+        <SteadyState Duration="120" Power="0.44"/>
+        <SteadyState Duration="600" Power="0.92"/>
+        <SteadyState Duration="240" Power="0.49"/>
+        <SteadyState Duration="600" Power="0.92"/>
+        <SteadyState Duration="120" Power="0.44"/>
+        <SteadyState Duration="600" Power="0.92"/>
+        <SteadyState Duration="240" Power="0.49"/>
+        <SteadyState Duration="600" Power="0.92"/>
+        <SteadyState Duration="120" Power="0.44"/>
+        <SteadyState Duration="600" Power="0.92"/>
         <Cooldown Duration="600" PowerLow="0.32" PowerHigh="0.44"/>
     </workout>
 </workout_file>`
