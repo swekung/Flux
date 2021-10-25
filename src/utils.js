@@ -1,25 +1,41 @@
-import { first, last, equals, isArray } from './functions.js';
+import { existance, first, last, equals, isArray } from './functions.js';
 
 // Views
-function secondsToHms(elapsed, compact = false) {
-    let hour = Math.floor(elapsed / 3600);
-    let min  = Math.floor(elapsed % 3600 / 60);
-    let sec  = elapsed % 60;
-    let sD   = (sec < 10)  ? `0${sec}`  : `${sec}`;
-    let mD   = (min < 10)  ? `0${min}`  : `${min}`;
-    let hD   = (hour < 10) ? `0${hour}` : `${hour}`;
-    let hDs  = (hour < 10) ? `${hour}`  : `${hour}`;
-    let res  = ``;
-    if(compact) {
-        if(elapsed < 3600) {
-            res = `${mD}:${sD}`;
-        } else {
+function formatTime(args = {}) {
+    const defaults = {
+        unit:   'seconds',
+        format: 'hh:mm:ss',
+    };
+
+    const value  = args.value;
+    const format = existance(args.format, defaults.format);
+    const unit   = existance(args.unit, defaults.unit);
+
+    if(equals(unit, 'seconds')) {
+        let hour = Math.floor(value / 3600);
+        let min  = Math.floor(value % 3600 / 60);
+        let sec  = value % 60;
+        let sD   = (sec < 10)  ? `0${sec}`  : `${sec}`;
+        let mD   = (min < 10)  ? `0${min}`  : `${min}`;
+        let hD   = (hour < 10) ? `0${hour}` : `${hour}`;
+        let hDs  = (hour < 10) ? `${hour}`  : `${hour}`;
+        let res  = ``;
+
+        if(equals(format, 'hh:mm:ss')) {
             res = `${hD}:${mD}:${sD}`;
         }
-    } else {
-        res = `${hD}:${mD}:${sD}`;
+        if(equals(format, 'mm:ss')) {
+            if(value < 3600) {
+                res = `${mD}:${sD}`;
+            } else {
+                res = `${hD}:${mD}:${sD}`;
+            }
+        }
+
+        return res;
     }
-    return res ;
+
+    return value;
 }
 
 function dateToDashString(date) {
@@ -73,10 +89,6 @@ function semicirclesToDeg(semicircles) {
 //
 function digits(n) {
     return Math.log(n) * Math.LOG10E + 1 | 0;
-}
-
-function rand(min = 0, max = 10) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 function gte(a, b) { return a >= b; }
@@ -246,7 +258,8 @@ function getUint32(uint8array, index = 0, endianness = true) {
 
 export {
     // Views
-    secondsToHms,
+    // secondsToHms,
+    formatTime,
     dateToDashString,
     format,
     kphToMps,
@@ -257,7 +270,6 @@ export {
 
     // Other
     digits,
-    rand,
     gte,
     lte,
     gt,

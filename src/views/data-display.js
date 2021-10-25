@@ -1,5 +1,5 @@
 import { xf, exists, equals } from '../functions.js';
-import { secondsToHms, stringToBool } from '../utils.js';
+import { formatTime, stringToBool } from '../utils.js';
 import { models } from '../models/models.js';
 
 class DataDisplay extends HTMLElement {
@@ -22,7 +22,7 @@ class DataDisplay extends HTMLElement {
             this.disabled = false;
         }
 
-        xf.sub(`db:${this.prop}`, this.onUpdate.bind(this));
+        xf.sub(`${this.prop}`, this.onUpdate.bind(this));
     }
     disconnectedCallback() {
         document.removeEventListener(`db:${this.prop}`, this.onUpdate);
@@ -86,13 +86,11 @@ class TimeDisplay extends DataDisplay {
     }
     defaultForm() { return 'hh:mm:ss'; }
     render() {
-        this.textContent = secondsToHms(this.state, this.compact);
+        this.textContent = formatTime({value: this.state, format: this.form});
     }
 }
 
 customElements.define('time-display', TimeDisplay);
-
-
 
 class DistanceDisplay extends DataDisplay {
     postInit() {
@@ -262,5 +260,5 @@ class DeviceInfoDisplay extends HTMLElement {
 
 customElements.define('device-info-display', DeviceInfoDisplay);
 
-
 export { DataDisplay, TimeDisplay };
+

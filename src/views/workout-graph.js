@@ -1,5 +1,5 @@
 import { xf, exists, equals } from '../functions.js';
-import { secondsToHms, scale } from '../utils.js';
+import { formatTime, scale } from '../utils.js';
 import { models } from '../models/models.js';
 
 function intervalsToGraph(intervals, ftp) {
@@ -14,7 +14,7 @@ function intervalsToGraph(intervals, ftp) {
             const zone = (models.ftp.powerToZone(power, ftp)).name;
             const infoPower = power === 0 ? 'Free ride' : power;
             const infoPowerUnit = power === 0 ? '' : 'W';
-            const infoTime = secondsToHms(step.duration, true);
+            const infoTime = formatTime({value: step.duration, format: 'mm:ss'});
 
             return a +
                 `<div class="graph--bar zone-${zone}" style="height: ${height}%; width: ${width}%">
