@@ -4,12 +4,14 @@ import {
     isUndefined,
     exists,
     existance,
-
-    // collections
     isArray,
     isObject,
     isString,
     isCollection,
+    isNumber,
+    isAtomic,
+
+    // collections
     first,
     second,
     third,
@@ -18,6 +20,8 @@ import {
     map,
     traverse,
     getIn,
+    set,
+    setIn,
     avg,
     max,
     sum,
@@ -363,16 +367,19 @@ describe('max', () => {
 });
 
 describe('getIn', () => {
-    const data = {x: {a: {one: 1, two: 2}, b: {three: 3}}, y: {}};
+    const data0 = {x: {a: {one: 1, two: 2}, b: {three: 3}}, y: {}};
+    const data1 = {x: 0, y: {one: 1}};
 
     test('', () => {
-        expect(getIn(data, 'x')).toStrictEqual({a: {one: 1, two: 2}, b: {three: 3}});
-        expect(getIn(data, 'y')).toStrictEqual({});
-        expect(getIn(data, 'x', 'a')).toStrictEqual({one: 1, two: 2});
-        expect(getIn(data, 'x', 'a', 'one')).toBe(1);
-        expect(getIn(data, 'x', 'a', 'two')).toBe(2);
-        expect(getIn(data, 'x', 'b', 'three')).toBe(3);
-        expect(getIn(data, 'z')).toBe(undefined);
+        expect(getIn(data0, 'x')).toStrictEqual({a: {one: 1, two: 2}, b: {three: 3}});
+        expect(getIn(data0, 'y')).toStrictEqual({});
+        expect(getIn(data0, 'x', 'a')).toStrictEqual({one: 1, two: 2});
+        expect(getIn(data0, 'x', 'a', 'one')).toBe(1);
+        expect(getIn(data0, 'x', 'a', 'two')).toBe(2);
+        expect(getIn(data0, 'x', 'b', 'three')).toBe(3);
+        expect(getIn(data0, 'z')).toBe(undefined);
+
+        expect(getIn(data1, 'x')).toBe(0);
     });
 });
 
