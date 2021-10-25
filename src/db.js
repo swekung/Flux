@@ -1,58 +1,46 @@
-import { xf, exists, equals } from '../functions.js';
+import { xf, exists, equals } from './functions.js';
 import { models } from './models/models.js';
+import { Session } from './session.js';
+
 
 let db = {
     // Data Screen
-    power: models.power.default,
+    power:     models.power.default,
     heartRate: models.heartRate.default,
-    cadence: models.cadence.default,
-    speed: models.speed.default,
-    distance: 0,
-    sources: models.sources.default,
+    cadence:   models.cadence.default,
+    speed:     models.speed.default,
+    distance:  0,
+    sources:   models.sources.default,
+
+    // Watch
+    watch: {},
 
     // Targets
-    powerTarget: models.powerTarget.default,
+    powerTarget:      models.powerTarget.default,
     resistanceTarget: models.resistanceTarget.default,
-    slopeTarget: models.slopeTarget.default,
+    slopeTarget:      models.slopeTarget.default,
 
     mode: models.mode.default,
     page: models.page.default,
 
     // Profile
-    ftp: models.ftp.default,
-    weight: models.weight.default,
-    theme: models.theme.default,
+    ftp:         models.ftp.default,
+    weight:      models.weight.default,
+    theme:       models.theme.default,
     measurement: models.measurement.default,
 
     // Workouts
     workouts: [],
-    workout: models.workout.default,
-
-    // Recording
-    records: [],
-    lap: [],
-    laps: [],
-    lapStartTime: false,
-    gpsData: [],
-    gps: false,
-
-    // Watch
-    elapsed: 0,
-    lapTime: 0,
-    stepTime: 0,
-    intervalIndex: 0,
-    stepIndex: 0,
-    intervalDuration: 0,
-    stepDuration: 0,
-    watchStatus: 'stopped',
-    workoutStatus: 'stopped',
+    workout:  models.workout.default,
 
     // Request ANT+ Device
     antSearchList: [],
-    antDeviceId: {},
+    antDeviceId:   {},
 };
 
 xf.create(db);
+
+const session = Session({workout: db.workout, db: db});
 
 // Data Screen
 xf.reg(models.heartRate.prop, (heartRate, db) => {
@@ -142,10 +130,16 @@ xf.reg('ui:measurement-switch', (_, db) => {
 // Workouts
 xf.reg('workout', (workout, db) => {
     db.workout = models.workout.set(workout);
+
+    console.log(db.workout);
+    session.setWorkout(db.workout);
 });
 xf.reg('ui:workout:select', (id, db) => {
     db.workout = models.workouts.get(db.workouts, id);
+    console.log(db.workout);
+    session.setWorkout(db.workout);
 });
+
 xf.reg('ui:workout:upload', async function(workoutFile, db) {
     const workoutText = await models.workout.readFromFile(workoutFile);
     const workout = models.workout.parse(workoutText);
@@ -162,9 +156,7 @@ xf.reg('ui:activity:save', (_, db) => {
     }
 });
 xf.reg('activity:save:success', (e, db) => {
-    // file:download:activity
     // reset db session:
-    db.records = [];
     db.resistanceTarget = 0;
     db.slopeTarget = 0;
     db.powerTarget = 0;
@@ -198,7 +190,6 @@ xf.reg(`ant:search:stopped`, (x, db) => {
     db.antSearchList = [];
 });
 
-//
 xf.reg('app:start', async function(_, db) {
 
     db.ftp = models.ftp.restore();

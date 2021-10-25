@@ -1,296 +1,323 @@
-import { exists, existance, first, last, xf, avg, max } from './functions.js';
-import { kphToMps, mpsToKph, timeDiff, fixInRange } from './utils.js';
+import { exists, existance, equals } from './functions.js';
 
-class Watch {
-    constructor(args) {
-        this.elapsed          = 0;
-        this.lapTime          = 0;
-        this.stepTime         = 0;
 
-        this.intervalIndex    = 0;
-        this.stepIndex        = 0;
-        this.intervalDuration = 0;
-        this.stepDuration     = 0;
 
-        this.state            = 'stopped';
-        this.stateWorkout     = 'stopped';
+function Timer(args = {}) {
 
-        this.intervals        = [];
-        this.init();
+    const defaults = {
+        status: 'stopped',
+        interval: 1000,
+        startTime: now,
+        timerTime: 0,
+        elapsedTime: 0,
+        lapTime: now,
+        callback: ((x) => x),
+    };
+
+    const interval   = existance(args.interval, defaults.interval);
+    const onStart    = existance(args.onStart,  defaults.callback);
+    const onPause    = existance(args.onPause,  defaults.callback);
+    const onResume   = existance(args.onResume, defaults.callback);
+    const onStop     = existance(args.onStop,   defaults.callback);
+    const onReset    = existance(args.onReset,  defaults.callback);
+    const onTick     = existance(args.onTick,   defaults.callback);
+    const onLap      = existance(args.onLap,    defaults.callback);
+    const statusList = ['stopped', 'started', 'paused'];
+
+    let status       = existance(args.status,    defaults.status);
+    let startTime    = existance(args.startTime, defaults.startTime());
+    let timerTime    = existance(args.timerTime, defaults.timerTime);
+    let lapTime      = existance(args.timerTime, defaults.lapTime);
+    let elapsedTime  = now() - startTime;
+    let timerId;
+
+    function now() {
+        return Date.now();
     }
-    init() {
-        let self = this;
-        xf.sub('db:workout',       workout => { self.intervals     = workout.intervals; });
-        xf.sub('db:elapsed',       elapsed => { self.elapsed       = elapsed; });
-        xf.sub('db:lapTime',          time => { self.lapTime       = time; });
-        xf.sub('db:stepTime',         time => { self.stepTime      = time; });
-        xf.sub('db:intervalDuration', time => { self.lapDuration   = time; });
-        xf.sub('db:stepDuration',     time => { self.stepDuration  = time; });
-        xf.sub('db:intervalIndex',   index => { self.intervalIndex = index; });
-        xf.sub('db:stepIndex',       index => { self.stepIndex     = index; });
-        xf.sub('db:watchStatus',     state => { self.state         = state; });
-        xf.sub('db:workoutStatus',   state => {
-            self.stateWorkout = state;
 
-            if(self.isWorkoutDone()) {
-                xf.dispatch('watch:lap');
-                console.log(`Workout done!`);
-            }
-        });
+    function getStatus() {
+        return status;
     }
-    isStarted()        { return this.state        === 'started'; };
-    isPaused()         { return this.state        === 'paused'; };
-    isStopped()        { return this.state        === 'stopped'; };
-    isWorkoutStarted() { return this.stateWorkout === 'started'; };
-    isWorkoutDone()    { return this.stateWorkout === 'done'; };
-    start() {
-        let self = this;
-        if(self.isStarted() && !self.isWorkoutStarted()) {
-            self.pause();
-        } else {
-            self.timer = setInterval(self.onTick.bind(self), 1000);
-            xf.dispatch('watch:started');
+
+    function getTimerTime() {
+        return timerTime;
+    }
+
+    function getElapsedTime() {
+        if(equals(status, 'stopped')) {
+            return elapsedTime;
         }
+        return now() - startTime;
     }
-    startWorkout() {
-        let self         = this;
-        let intervalTime = self.intervals[0].duration;
-        let stepTime     = self.intervals[0].steps[0].duration;
 
-        xf.dispatch('workout:started');
-
-        xf.dispatch('watch:intervalDuration', intervalTime);
-        xf.dispatch('watch:stepDuration',     stepTime);
-        xf.dispatch('watch:lapTime',          intervalTime);
-        xf.dispatch('watch:stepTime',         stepTime);
-
-        xf.dispatch('watch:intervalIndex',  0);
-        xf.dispatch('watch:stepIndex', 0);
-
-        if(!self.isStarted()) {
-            self.start();
-        }
+    function getStartTime() {
+        return startTime;
     }
-    restoreWorkout() {
-        let self = this;
 
-        if(self.isWorkoutStarted()) {
-            xf.dispatch('workout:started');
-        }
-        if(self.isStarted()) {
-            self.start();
-        }
+    function getState() {
+        return {
+            status:      getStatus(),
+            timerTime:   getTimerTime(),
+            elapsedTime: getElapsedTime(),
+            startTime:   getStartTime(),
+        };
     }
-    resume() {
-        let self = this;
-        if(!self.isStarted()) {
-            self.timer = setInterval(self.onTick.bind(self), 1000);
-            xf.dispatch('watch:started');
-        }
+
+    function start() {
+        if(equals(status, 'started')) return;
+        if(equals(status, 'paused')) {
+            resume(); return;
+        };
+
+        timerId = setInterval(tick, interval);
+        startTime = now();
+        status = 'started';
+        onStart();
     }
-    pause() {
-        let self = this;
-        clearInterval(self.timer);
-        xf.dispatch('watch:paused');
+
+    function pause() {
+        if(equals(status, 'paused')) return;
+        if(equals(status, 'stopped')) return;
+
+        clearInterval(timerId);
+        status = 'paused';
+        onPause();
     }
-    stop() {
-        let self = this;
-        if(self.isStarted() || self.isPaused()) {
-            clearInterval(self.timer);
 
-            xf.dispatch('watch:stopped');
+    function resume() {
+        if(equals(status, 'started')) return;
+        if(equals(status, 'stopped')) return;
 
-            if(self.isWorkoutStarted()) {
-                xf.dispatch('workout:stopped');
-            }
-
-            self.lap();
-
-            xf.dispatch('watch:intervalIndex', 0);
-            xf.dispatch('watch:stepIndex',     0);
-            xf.dispatch('watch:elapsed',       0);
-            xf.dispatch('watch:lapTime',       0);
-        }
+        timerId = setInterval(tick, interval);
+        status = 'started';
+        onResume();
     }
-    onTick() {
-        let self     = this;
-        let elapsed  = self.elapsed + 1;
-        let lapTime  = self.lapTime;
-        let stepTime = self.stepTime;
 
-        if(self.isWorkoutStarted()) {
-            lapTime  -= 1;
-            stepTime -= 1;
-        } else {
-            lapTime  += 1;
-        }
+    function stop() {
+        if(equals(status, 'stopped')) return;
 
-        xf.dispatch('watch:elapsed',  elapsed);
-        xf.dispatch('watch:lapTime',  lapTime);
-        xf.dispatch('watch:stepTime', stepTime);
-
-        if((self.isWorkoutStarted()) && (stepTime <= 0)) {
-            self.step();
-        }
+        clearInterval(timerId);
+        status = 'stopped';
+        onStop();
     }
-    lap() {
-        let self = this;
 
-        if(self.isWorkoutStarted()) {
-            let i             = self.intervalIndex;
-            let s             = self.stepIndex;
-            let intervals     = self.intervals;
-            let moreIntervals = i < (intervals.length - 1);
+    function reset() {
+        clearInterval(timerId);
+        status = 'stopped';
+        timerTime = 0;
+        elapsedTime = 0;
+        onReset();
+    }
 
-            if(moreIntervals) {
-                i += 1;
-                s  = 0;
+    function tick() {
+        timerTime = timerTime + 1;
+        elapsedTime = getElapsedTime();
+        onTick({timerTime, elapsedTime});
+    }
 
-                self.nextInterval(intervals, i, s);
-                self.nextStep(intervals, i, s);
-            } else {
-                xf.dispatch('workout:done');
-            }
-        } else {
-            xf.dispatch('watch:lap');
-            xf.dispatch('watch:lapTime', 0);
-        }
+    function lap() {
+        lapTime = timerTime;
+        onLap({lapTime, timerTime, elapsedTime});
     }
-    step() {
-        let self          = this;
-        let i             = self.intervalIndex;
-        let s             = self.stepIndex;
-        let intervals     = self.intervals;
-        let steps         = intervals[i].steps;
-        let moreIntervals = i < (intervals.length  - 1);
-        let moreSteps     = s < (steps.length - 1);
 
-        if(moreSteps) {
-            s += 1;
+    return Object.freeze({
+        start,
+        pause,
+        resume,
+        lap,
+        stop,
+        reset,
 
-            self.nextStep(intervals, i, s);
-        } else if (moreIntervals) {
-            i += 1;
-            s  = 0;
-
-            self.nextInterval(intervals, i, s);
-            self.nextStep(intervals, i, s);
-        } else {
-            xf.dispatch('workout:done');
-        }
-    }
-    nextInterval(intervals, intervalIndex, stepIndex) {
-        let self             = this;
-        let intervalDuration = self.intervalsToDuration(intervals, intervalIndex);
-        let stepDuration     = self.intervalsToStepDuration(intervals, intervalIndex, stepIndex);
-
-        self.dispatchInterval(intervalDuration, intervalIndex);
-    }
-    nextStep(intervals, intervalIndex, stepIndex) {
-        let self         = this;
-        let stepDuration = self.intervalsToStepDuration(intervals, intervalIndex, stepIndex);
-        self.dispatchStep(stepDuration, stepIndex);
-    }
-    intervalsToDuration(intervals, intervalIndex) {
-        let duration = intervals[intervalIndex].duration;
-        return duration;
-    }
-    intervalsToStepDuration(intervals, intervalIndex, stepIndex) {
-        let steps    = intervals[intervalIndex].steps;
-        let duration = steps[stepIndex].duration;
-        return duration;
-    }
-    dispatchInterval(intervalDuration, intervalIndex) {
-        xf.dispatch('watch:intervalDuration', intervalDuration);
-        xf.dispatch('watch:lapTime',          intervalDuration);
-        xf.dispatch('watch:intervalIndex',    intervalIndex);
-        xf.dispatch('watch:lap');
-    }
-    dispatchStep(stepDuration, stepIndex) {
-        xf.dispatch('watch:stepDuration', stepDuration);
-        xf.dispatch('watch:stepTime',     stepDuration);
-        xf.dispatch('watch:stepIndex',    stepIndex);
-        xf.dispatch('watch:step');
-    }
+        getStatus,
+        getTimerTime,
+        getElapsedTime,
+        getStartTime,
+        getState,
+    });
 }
 
-// Register DB Events
-xf.reg('watch:lapDuration',    (time, db) => db.intervalDuration = time);
-xf.reg('watch:stepDuration',   (time, db) => db.stepDuration     = time);
-xf.reg('watch:lapTime',        (time, db) => db.lapTime          = time);
-xf.reg('watch:stepTime',       (time, db) => db.stepTime         = time);
-xf.reg('watch:intervalIndex', (index, db) => db.intervalIndex    = index);
-xf.reg('watch:stepIndex',     (index, db) => {
-    db.stepIndex      = index;
-    let intervalIndex = db.intervalIndex;
-    let powerTarget   = db.workout.intervals[intervalIndex].steps[index].power;
-    let slopeTarget   = db.workout.intervals[intervalIndex].steps[index].slope;
+function WorkoutRunner(args = {}) {
+    const defaults = {
+        lapIndex:  0,
+        stepIndex: 0,
+        lapTime:   (_ => workout.intervals[lapIndex].duration),
+        stepTime:  (_ => workout.intervals[lapIndex].steps[stepIndex].duration),
+        callback:  ((x) => x),
+    };
 
-    if(exists(slopeTarget)) {
-        xf.dispatch('ui:slope-target-set', slopeTarget);
-    } else if(exists(powerTarget)) {
-        xf.dispatch('ui:power-target-set', parseInt(db.ftp * powerTarget)); // update just the workout defined
-    } else {
-        xf.dispatch('ui:power-target-set', 0);
+    let workout      = existance(args.workout);
+    let lapIndex     = existance(args.lapIndex, defaults.lapIndex);
+    let stepIndex    = existance(args.stepIndex, defaults.stepIndex);
+    let lapTime      = existance(args.lapTime, defaults.lapTime());
+    let stepTime     = existance(args.stepTime, defaults.stepTime());
+    let lap          = workout.intervals[lapIndex];
+    let step         = workout.intervals[lapIndex].steps[stepIndex];
+    let lapDuration  = lap.duration;
+    let stepDuration = step.duration;
+    let lapsLength   = workout.intervals.length;
+    let stepsLength  = lap.steps.length;
+    let statusList   = ['started', 'paused', 'finished', 'stopped'];
+    let status       = 'stopped';
+
+    let onTick       = existance(args.onTick, defaults.callback);
+    let onLap        = existance(args.onLap, defaults.callback);
+    let onStart      = existance(args.onStart, defaults.callback);
+    let onPause      = existance(args.onPause, defaults.callback);
+    let onResume     = existance(args.onResume, defaults.callback);
+    let onFinish     = existance(args.onFinish, defaults.callback);
+
+    function getWorkout()      { return workout; }
+    function getIntervals()    { return workout.intervals; }
+    function getLapIndex()     { return lapIndex; }
+    function getStepIndex()    { return stepIndex; }
+    function getLapTime()      { return lapTime; }
+    function getStepTime()     { return stepTime; }
+    function getLapDuration()  { return lapDuration; }
+    function getStepDuration() { return stepDuration; }
+    function getLap()          { return lap; }
+    function getStep()         { return step; }
+    function getStatus()       { return status; }
+    function getState() {
+        return {
+            status:       getStatus(),
+            lapIndex:     getLapIndex(),
+            stepIndex:    getStepIndex(),
+            lapTime:      getLapTime(),
+            stepTime:     getStepTime(),
+            lapDuration:  getLapDuration(),
+            stepDuration: getStepDuration(),
+
+            lap:          getLap(),
+            step:         getStep(),
+            workout:      getWorkout(),
+        };
     }
-});
-xf.reg('workout:started', (x, db) => db.workoutStatus = 'started');
-xf.reg('workout:stopped', (x, db) => db.workoutStatus = 'stopped');
-xf.reg('workout:done',    (x, db) => db.workoutStatus = 'done');
-xf.reg('watch:started',   (x, db) => {
-    db.watchStatus = 'started';
-    if(db.lapStartTime === false) {
-        db.lapStartTime = Date.now(); // if first lap
+
+    function setWorkout(value) {
+        workout = value;
+
+        stepTime     = workout.intervals[lapIndex].steps[stepIndex].duration;
+        lapTime      = workout.intervals[lapIndex].duration;
+        lap          = workout.intervals[lapIndex];
+        step         = workout.intervals[lapIndex].steps[stepIndex];
+        lapDuration  = lap.duration;
+        stepDuration = step.duration;
+        lapsLength   = workout.intervals.length;
+        stepsLength  = lap.steps.length;
     }
-});
-xf.reg('watch:paused',  (x, db) => db.watchStatus = 'paused');
-xf.reg('watch:stopped', (x, db) => db.watchStatus = 'stopped');
-xf.reg('watch:elapsed', (x, db) => {
-    db.elapsed = x;
-    db.distance  += 1 * kphToMps(db.speed);
 
-    let record = {timestamp: Date.now(),
-                  power:     db.power,
-                  cadence:   db.cadence,
-                  speed:     db.speed,
-                  hr:        db.heartRate,
-                  distance:  db.distance};
-    db.records.push(record);
-    db.lap.push(record);
-});
-xf.reg('watch:lap', (x, db) => {
-    let timeEnd   = Date.now();
-    let timeStart = db.lapStartTime;
-    let elapsed   = timeDiff(timeStart, timeEnd);
+    function tick(args) {
+        if(equals(status, 'started')) {
+            if(stepTime <= 1) {
+                nextStep();
+            } else {
+                stepTime = stepTime - 1;
+                lapTime  = lapTime - 1;
+            }
+        }
 
-    if(elapsed > 0) {
-        db.laps.push({timestamp:        timeEnd,
-                      startTime:        timeStart,
-                      totalElapsedTime: elapsed,
-                      avgPower:         Math.round(avg(db.lap, 'power')),
-                      maxPower:         max(db.lap, 'power')});
-        // console.log(`lap: `,
-        //             {timestamp:        new Date(timeEnd),
-        //              startTime:        new Date(timeStart),
-        //              totalElapsedTime: elapsed});
+        onTick(getState());
     }
-    db.lap = [];
-    db.lapStartTime = timeEnd + 0;
-});
 
-const watch = new Watch();
+    function nextStep() {
+        stepIndex = stepIndex + 1;
 
-xf.sub('ui:workoutStart', e => { watch.startWorkout();   });
-xf.sub('ui:watchStart',   e => { watch.start();          });
-xf.sub('workout:restore', e => { watch.restoreWorkout(); });
-xf.sub('ui:watchPause',   e => { watch.pause();          });
-xf.sub('ui:watchResume',  e => { watch.resume();         });
-xf.sub('ui:watchLap',     e => { watch.lap();            });
-xf.sub('ui:watchStop',    e => {
-    const stop = confirm('Confirm Stop?');
-    if(stop) {
-        watch.stop();
+        if(stepIndex >= stepsLength) {
+            nextLap();
+        } else {
+            step         = workout.intervals[lapIndex].steps[stepIndex];
+            stepDuration = step.duration;
+            stepTime     = step.duration;
+
+            lapTime = lapTime - 1;
+        }
     }
-});
 
-export { watch };
+    function nextLap() {
+        if(lapIndex >= (lapsLength - 1)) {
+            finish();
+            onLap(getState());
+            return;
+        }
+
+        lapIndex  = lapIndex + 1;
+        stepIndex = 0;
+
+        lap  = workout.intervals[lapIndex];
+        step = workout.intervals[lapIndex].steps[stepIndex];
+
+        lapDuration  = lap.duration;
+        stepDuration = step.duration;
+
+        lapTime  = lap.duration;
+        stepTime = step.duration;
+
+        stepsLength = lap.steps.length;
+
+        onLap(getState());
+    }
+
+    function skip() {
+        nextLap();
+    }
+
+    function skipTo(args) {
+        if(exists(args.lapIndex)) {
+            lapIndex = args.lapIndex - 1;
+            nextLap();
+        }
+        return;
+    }
+
+    function start() {
+        status = 'started';
+        onStart(getState());
+    }
+
+    function pause() {
+        status = 'paused';
+        onPause(getState());
+    }
+
+    function resume() {
+        status = 'started';
+        onResume(getState());
+    }
+
+    function finish() {
+        status = 'finished';
+        onFinish();
+    }
+
+    function stop() {
+        status = 'stopped';
+    }
+
+    return Object.freeze({
+        tick,
+        skip,
+        skipTo,
+        start,
+        pause,
+        resume,
+        stop,
+
+        getWorkout,
+        getIntervals,
+        getLapIndex,
+        getStepIndex,
+        getLapTime,
+        getStepTime,
+        getLapDuration,
+        getStepDuration,
+        getLap,
+        getStep,
+        getStatus,
+        getState,
+
+        setWorkout,
+    });
+}
+
+export { Timer, WorkoutRunner };
+

@@ -1,88 +1,160 @@
-import { xf } from '../functions.js';
+import { equals, xf } from '../functions.js';
 import { q } from './q.js';
 
 class Watch extends HTMLElement {
-    constructor() {
+    constructor(args = {}) {
         super();
+        this.selectors = {
+            start:        '#watch-start',
+            pause:        '#watch-pause',
+            lap:          '#watch-lap',
+            stop:         '#watch-stop',
+            save:         '#activity-save',
+            workoutStart: '#workout-start',
+            workoutPause: '#workout-pause',
+        };
     }
     connectedCallback() {
+        const self = this;
         this.dom = {
-            start:   q.get('#watch-start'),
-            pause:   q.get('#watch-pause'),
-            lap:     q.get('#watch-lap'),
-            stop:    q.get('#watch-stop'),
-            save:    q.get('#activity-save'),
-            workout: q.get('#start-workout'),
+            start:        q.get(this.selectors.start),
+            pause:        q.get(this.selectors.pause),
+            lap:          q.get(this.selectors.lap),
+            stop:         q.get(this.selectors.stop),
+            save:         q.get(this.selectors.save),
+            workoutStart: q.get(this.selectors.workoutStart),
+            workoutPause: q.get(this.selectors.workoutPause),
         };
 
         this.dom.start.addEventListener('pointerup', this.onStart);
         this.dom.pause.addEventListener('pointerup', this.onPause);
         this.dom.lap.addEventListener('pointerup', this.onLap);
         this.dom.stop.addEventListener('pointerup', this.onStop);
-        this.dom.workout.addEventListener('pointerup', this.onWorkoutStart);
+        this.dom.workoutStart.addEventListener('pointerup', this.onWorkoutStart);
+        this.dom.workoutPause.addEventListener('pointerup', this.onWorkoutPause);
         this.dom.save.addEventListener(`pointerup`, this.onSave);
 
         this.renderInit(this.dom);
 
-        xf.sub(`db:watchStatus`, this.onWatchStatus.bind(this));
-        xf.sub(`db:workoutStatus`, this.onWorkoutStatus.bind(this));
-
+        xf.sub('watch:status', this.onWatchStatus.bind(this));
     }
     disconnectedCallback() {
-       this.dom.start.removeEventListener(`pointerup`, this.onStart);
-       this.dom.pause.removeEventListener(`pointerup`, this.onPause);
-       this.dom.lap.removeEventListener(`pointerup`, this.onLap);
-       this.dom.stop.removeEventListener(`pointerup`, this.onStop);
-       this.dom.workout.removeEventListener(`pointerup`, this.onWorkoutStart);
-       this.dom.save.removeEventListener(`pointerup`, this.onSave);
-       document.removeEventListener(`db:watchStatus`, this.onWatchStatus);
-       document.removeEventListener(`db:workoutStatus`, this.onWorkoutStatus);
+        this.dom.start.removeEventListener(`pointerup`, this.onStart);
+        this.dom.pause.removeEventListener(`pointerup`, this.onPause);
+        this.dom.lap.removeEventListener(`pointerup`, this.onLap);
+        this.dom.stop.removeEventListener(`pointerup`, this.onStop);
+        this.dom.workoutStart.removeEventListener(`pointerup`, this.onWorkoutStart);
+        this.dom.workoutPause.removeEventListener(`pointerup`, this.onWorkoutPause);
+        this.dom.save.removeEventListener(`pointerup`, this.onSave);
+
+        xf.unsub('watch:status', this.onWatchStatus);
+
     }
-    onStart(e) { xf.dispatch('ui:watchStart'); }
-    onPause(e) { xf.dispatch('ui:watchPause'); }
+    onStart(e) { xf.dispatch('ui:timerStart'); }
+    onPause(e) { xf.dispatch('ui:timerPause'); }
     onLap(e)   { xf.dispatch('ui:watchLap'); }
-    onStop(e)  { xf.dispatch('ui:watchStop'); }
-    onSave(e)  { xf.dispatch('ui:activity:save'); }
-    onWorkoutStart(e) { xf.dispatch('ui:workoutStart'); }
-    onWatchStatus(status) {
-        if(status === 'started') { this.renderStarted(this.dom); }
-        if(status === 'paused')  { this.renderPaused(this.dom);  }
-        if(status === 'stopped') { this.renderStopped(this.dom); }
+    onStop(e)  {
+        const stop = confirm('Confirm Stop?');
+        if(stop) {
+            xf.dispatch('ui:timerStop');
+        }
     }
-    onWorkoutStatus(status) {
-        if(status === 'started') { this.renderWorkoutStarted(this.dom); }
-        if(status === 'done')    { console.log(`Workout done!`); }
+    onSave(e)  { xf.dispatch('ui:activitySave'); }
+    onWorkoutStart(e) { xf.dispatch('ui:workoutStart'); }
+    onWorkoutPause(e) { xf.dispatch('ui:workoutPause'); }
+    onWatchStatus({timer, workout}) {
+        if(equals(timer, 'started')) {
+            this.renderStarted(this.dom);
+        }
+        if(equals(timer, 'paused')) {
+
+            if(equals(workout, 'started')) {
+                this.renderPausedAll(this.dom);
+                return;
+            } else {
+                this.renderPaused(this.dom);
+            }
+        }
+        if(equals(timer, 'stopped')) {
+            this.renderStopped(this.dom);
+            return;
+        }
+
+        if(equals(workout, 'started')) {
+            this.renderWorkoutStarted(this.dom);
+        }
+        if(equals(workout, 'paused')) {
+            this.renderWorkoutPaused(this.dom);
+        }
+        if(equals(workout, 'finished')) {
+            this.renderWorkoutFinished(this.dom);
+        }
+
     }
     renderInit(dom) {
         dom.pause.style.display = 'none';
+        dom.lap.style.display   = 'none';
         dom.stop.style.display  = 'none';
         dom.save.style.display  = 'none';
-        dom.lap.style.display   = 'none';
+
+        dom.workoutPause.style.display = 'none';
     };
     renderStarted(dom) {
         dom.start.style.display = 'none';
-        dom.save.style.display  = 'none';
         dom.pause.style.display = 'inline-block';
         dom.lap.style.display   = 'inline-block';
         dom.stop.style.display  = 'none';
-        // dom.stop.style.display  = 'inline-block';
+        dom.save.style.display  = 'none';
     };
     renderPaused(dom) {
         dom.pause.style.display = 'none';
+        dom.lap.style.display   = 'none';
         dom.start.style.display = 'inline-block';
         dom.stop.style.display  = 'inline-block';
     };
     renderStopped(dom) {
-        dom.pause.style.display   = 'none';
-        dom.lap.style.display     = 'none';
-        dom.stop.style.display    = 'none';
-        dom.save.style.display    = 'inline-block';
-        dom.workout.style.display = 'inline-block';
-        dom.start.style.display   = 'inline-block';
+        dom.start.style.display = 'inline-block';
+        dom.pause.style.display = 'none';
+        dom.lap.style.display   = 'none';
+        dom.stop.style.display  = 'none';
+        dom.save.style.display  = 'inline-block';
+
+        dom.workoutStart.style.display = 'none';
     };
     renderWorkoutStarted(dom) {
-        dom.workout.style.display = 'none';
+        dom.workoutStart.style.display = 'none';
+        dom.workoutPause.style.display = 'inline-block';
+        dom.lap.style.display          = 'inline-block';
     };
+    renderWorkoutPaused(dom) {
+        dom.workoutStart.style.display = 'inline-block';
+        dom.workoutPause.style.display = 'none';
+
+        dom.lap.style.display   = 'none';
+    };
+    renderWorkoutFinished(dom) {
+        dom.workoutStart.style.display = 'inline-block';
+        dom.workoutPause.style.display = 'none';
+    }
+    renderPausedAll(dom) {
+        dom.pause.style.display = 'none';
+        dom.lap.style.display   = 'none';
+        dom.start.style.display = 'inline-block';
+        dom.stop.style.display  = 'inline-block';
+
+        dom.workoutStart.style.display = 'none';
+        dom.workoutPause.style.display = 'none';
+    }
+    renderStartedAll(dom) {
+        dom.start.style.display = 'none';
+        dom.pause.style.display = 'inline-block';
+        dom.lap.style.display   = 'inline-block';
+        dom.stop.style.display  = 'none';
+        dom.save.style.display  = 'none';
+
+        dom.workoutStart.style.display = 'none';
+        dom.workoutPause.style.display = 'inline-block';
+    }
 }
 
 customElements.define('watch-control', Watch);

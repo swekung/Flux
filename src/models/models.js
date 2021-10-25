@@ -10,7 +10,7 @@ import { uuid } from '../storage/uuid.js';
 import { workouts as workoutsFile }  from '../workouts/workouts.js';
 import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
-import { activity } from '../fit/activity.js';
+import { fitjs } from '../fit/fitjs.js';
 import { fit } from '../fit/fit.js';
 
 class Model {
@@ -351,7 +351,7 @@ class Workout extends Model {
         return `workout-${dateToDashString(now)}.fit`;
     }
     encode(db) {
-        const fitjsActivity = activity.encode({records: db.records, laps: db.laps});
+        const fitjsActivity = fitjs.encode({records: db.records, laps: db.laps, events: db.events});
         console.log(fitjsActivity);
         return fit.activity.encode(fitjsActivity);
     }
@@ -436,23 +436,6 @@ function Session(args = {}) {
 
     function dbToSession(db) {
         const session = {
-            // Watch
-            elapsed: db.elapsed,
-            lapTime: db.lapTime,
-            stepTime: db.stepTime,
-            intervalIndex: db.intervalIndex,
-            stepIndex: db.stepIndex,
-            intervalDuration: db.intervalDuration,
-            stepDuration: db.stepDuration,
-            lapStartTime: db.lapStartTime,
-            watchStatus: db.watchStatus,
-            workoutStatus: db.workoutStatus,
-
-            // Recording
-            records: db.records,
-            laps: db.laps,
-            lap: db.lap,
-
             // Workouts
             workout: db.workout,
             mode: db.mode,
