@@ -142,6 +142,19 @@ class HeartRateView extends DataView {
 customElements.define('heart-rate-view', HeartRateView);
 
 
+class WorkoutName extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:workout',
+        };
+    }
+    getValue(propValue) {
+        return propValue.name;
+    }
+}
+
+customElements.define('workout-name', WorkoutName);
+
 class PowerView extends DataView {
     config() {
         this.buffer = [];
@@ -194,8 +207,10 @@ export {
     DataView,
     TimerTime,
     IntervalTime,
-    PowerView,
     CadenceView,
     HeartRateView,
+    PowerView,
+
+    WorkoutName,
 }
 

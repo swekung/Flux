@@ -47,6 +47,10 @@ function onPowerSmoothingSet(value, db) {
     db.powerSmoothing = value;
 }
 
+function onWorkoutSet(value, db) {
+    db.workout = value;
+}
+
 let db = {
     data: 0,
     count: 0,
@@ -60,6 +64,9 @@ let db = {
     },
     power: 0,
     powerSmoothing: 0,
+    workout: {
+        name: 'free ride',
+    }
 };
 
 xf.create(db);
@@ -69,6 +76,7 @@ xf.reg('timer-time-set', onTotalTimeSet);
 xf.reg('interval-time-set', onIntervalTimeSet);
 xf.reg('power-set', onPowerSet);
 xf.reg('power-smoothing-set', onPowerSmoothingSet);
+xf.reg('workout-set', onWorkoutSet);
 
 
 
@@ -162,6 +170,22 @@ describe('IntervalTime', () => {
     });
 });
 
+describe('WorkoutName', () => {
+
+    test('workout-name', () => {
+        window.document.body.innerHTML = `<workout-name id="workout-name"></workout-name>`;
+
+        expect(document.querySelector('#workout-name').textContent).toBe('');
+
+        xf.dispatch('workout-set', {name: 'Dijon'});
+        expect(document.querySelector('#workout-name').textContent).toBe('Dijon');
+
+        xf.dispatch('workout-set', {name: 'Maple'});
+        expect(document.querySelector('#workout-name').textContent).toBe('Maple');
+    });
+
+});
+
 describe('PowerView', () => {
 
     test('power-view', () => {
@@ -199,16 +223,16 @@ describe('PowerView', () => {
 
         Date.now = jest.fn(() => startTime);
 
-        let pvi = 0;
-        const pv = [100, 102, 103, 104, 118, 117, 110, 103];
-        const apv1 = avg(pv.slice(0,4));
-        const apv2 = avg(pv.slice(4,8));
+        let i      = 0;
+        const data = [100, 102, 103, 104, 118, 117, 110, 103];
+        const avg1 = avg(data.slice(0,4));
+        const avg2 = avg(data.slice(4,8));
 
         xf.dispatch('power-smoothing-set', 1000);
 
         function onInterval() {
-            xf.dispatch('power-set', pv[pvi]);
-            pvi++;
+            xf.dispatch('power-set', data[i]);
+            i++;
         }
 
         expect(document.querySelector('#power-view').textContent).toBe('--');
@@ -230,13 +254,13 @@ describe('PowerView', () => {
         jest.advanceTimersByTime((250 * 4) + 50);
         onInterval();
 
-        expect(document.querySelector('#power-view').textContent).toBe(`${apv1}`);
+        expect(document.querySelector('#power-view').textContent).toBe(`${avg1}`);
 
         Date.now = jest.fn(() => startTime + (250 * 5));
         jest.advanceTimersByTime((250 * 5));
         onInterval();
 
-        expect(document.querySelector('#power-view').textContent).toBe(`${apv1}`);
+        expect(document.querySelector('#power-view').textContent).toBe(`${avg2}`);
 
     });
 });

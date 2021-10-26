@@ -122,7 +122,8 @@
 
                         <div id="graph-workout" class="graph">
                             <h4 id="current-workout-name" class="graph--heading">
-                                <data-display prop="workout" path="name"></data-display>
+                                <!-- <data-display prop="workout" path="name"></data-display> -->
+                                <workout-name></workout-name>
                             </h4>
                             <workout-graph class="graph-workout--cont" prop="workout" metric="ftp"></workout-graph>
                         </div>
@@ -651,7 +652,7 @@
                 <div class="controls">
                     <watch-control id="watch" class="watch cf">
                         <div id="workout-name">
-                            <data-display prop="workout" path="name">Free ride</data-display>
+                            <workout-name></workout-name>
                         </div>
 
                         <div id="workout-start" class="control--btn">
