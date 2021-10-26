@@ -520,7 +520,6 @@ describe('Watch View', () => {
         expect(document.querySelector('#elapsed-time').textContent).toBe('--:--:--');
     });
 
-    jest.useFakeTimers();
 
     test('watch-control', () => {
         // init
@@ -601,7 +600,7 @@ describe('Watch View', () => {
         expect(document.querySelector('#watch-stop').style.display).toBe('inline-block');
         expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-start').style.display).toBe('inline-block');
         expect(document.querySelector('#workout-pause').style.display).toBe('none');
 
         xf.dispatch('ui:timerResume');
@@ -623,7 +622,7 @@ describe('Watch View', () => {
         expect(document.querySelector('#watch-stop').style.display).toBe('inline-block');
         expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-start').style.display).toBe('inline-block');
         expect(document.querySelector('#workout-pause').style.display).toBe('none');
 
         xf.dispatch('ui:timerStop');
