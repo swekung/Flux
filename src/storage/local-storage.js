@@ -42,16 +42,17 @@ function LocalStorageItem(args = {}) {
     function set(value) {
         if(isValid(value)) {
             window.localStorage.setItem(`${key}`, value);
-            return value;
+            return {key: key, value: value};
         } else {
-            console.error(`Trying to enter invalid ${key} value in Local Storage: ${typeof value}`, value);
+            console.warn(`Trying to enter invalid ${key} value in Local Storage: ${typeof value}`, value);
             window.localStorage.setItem(`${key}`, fallback);
-            return fallback;
+            return {key: key, value: fallback};
         }
     }
 
     function remove() {
         window.localStorage.removeItem(`${key}`);
+        return undefined;
     }
 
     return Object.freeze({

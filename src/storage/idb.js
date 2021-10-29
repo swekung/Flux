@@ -2,7 +2,7 @@
 // IDB
 //
 
-import { xf, exists } from '../functions.js';
+import { exists } from '../functions.js';
 import { uuid } from './uuid.js';
 
 function promisify(request) {
