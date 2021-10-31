@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import { JSDOM } from 'jsdom';
 import { DataView, TotalTime, PowerView } from '../../src/views/data-views.js';
 import { xf, rand, avg } from '../../src/functions.js';
