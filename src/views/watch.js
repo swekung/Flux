@@ -1,5 +1,4 @@
 import { equals, xf } from '../functions.js';
-import { q } from './q.js';
 
 class Watch extends HTMLElement {
     constructor(args = {}) {
@@ -17,13 +16,13 @@ class Watch extends HTMLElement {
     connectedCallback() {
         const self = this;
         this.dom = {
-            start:        q.get(this.selectors.start),
-            pause:        q.get(this.selectors.pause),
-            lap:          q.get(this.selectors.lap),
-            stop:         q.get(this.selectors.stop),
-            save:         q.get(this.selectors.save),
-            workoutStart: q.get(this.selectors.workoutStart),
-            workoutPause: q.get(this.selectors.workoutPause),
+            start:        document.querySelector(this.selectors.start),
+            pause:        document.querySelector(this.selectors.pause),
+            lap:          document.querySelector(this.selectors.lap),
+            stop:         document.querySelector(this.selectors.stop),
+            save:         document.querySelector(this.selectors.save),
+            workoutStart: document.querySelector(this.selectors.workoutStart),
+            workoutPause: document.querySelector(this.selectors.workoutPause),
         };
 
         this.dom.start.addEventListener('pointerup', this.onStart);
