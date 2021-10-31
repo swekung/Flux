@@ -112,6 +112,25 @@ function resistanceTarget(resistance) {
     return view;
 }
 
+function wheelCircumference(args) {
+    // 700x25C -> 2105 -> [0x12, 0x3A, 0x52] -> [18, 58, 82]
+    // 700x40C -> 2200 -> [0x12, 0xF0, 0x55] -> [18, 240, 85]
+    // 700x47C -> 2268 -> [0x12, 0x98, 0x58] -> [18, 152, 88]
+    // Max     -> 2750 -> [0x12, 0x6C, 0x6B] -> [18, 108, 107]
+    const OpCode = 0x12;
+    const circumferenceResolution = 10;
+    const circumference = args.circumference * circumferenceResolution; // mm - 0.1
+
+    let buffer = new ArrayBuffer(3);
+    let view   = new DataView(buffer);
+    view.setUint8(0, OpCode, true);
+    view.setUint16(1, circumference, true);
+
+    console.log(`:wheelCircumference ${args.circumference}`);
+
+    return view;
+}
+
 function requestControl() {
     const OpCode = 0x00;
     let buffer   = new ArrayBuffer(1);
@@ -126,6 +145,7 @@ export {
     resistanceTarget,
     slopeTarget,
     simulationParameters,
+    wheelCircumference,
     requestControl,
     controlPointResponseDecoder
 };
