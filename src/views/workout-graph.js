@@ -2,8 +2,8 @@ import { xf, exists, equals } from '../functions.js';
 import { formatTime, scale } from '../utils.js';
 import { models } from '../models/models.js';
 
-function intervalsToGraph(intervals, ftp) {
-    let scaleMax = ftp * 1.6;
+function intervalsToGraph(intervals, ftp, graphHeight = 118) {
+    let scaleMax = ftp * 1.6 * (90 / graphHeight);
     return intervals.reduce( (acc, interval) => {
         let width = (interval.duration) < 1 ? 1 : parseInt(Math.round(interval.duration)); // ?
         let stepsCount = interval.steps.length;
@@ -40,6 +40,7 @@ class WorkoutGraph extends HTMLElement {
         this.prop = this.getAttribute('prop');
         this.metric = this.getAttribute('metric');
         this.width = this.getWidth();
+        this.height = this.getHeight();
 
         xf.sub(`db:${this.prop}`, this.onUpdate.bind(this));
         xf.sub(`db:${this.metric}`, this.onMetric.bind(this));
@@ -48,17 +49,28 @@ class WorkoutGraph extends HTMLElement {
             this.index = index;
             this.progress(this.index);
         });
+
+        window.addEventListener('resize', this.onWindowResize.bind(this));
     }
     disconnectedCallback() {
-        document.removeEventListener(`db:${this.prop}`, this.onUpdate);
-        document.removeEventListener(`db:${this.metric}`, this.onMetric);
+        window.removeEventListener(`db:${this.prop}`, this.onUpdate);
+        window.removeEventListener(`db:${this.metric}`, this.onMetric);
+        window.removeEventListener('resize', this.onWindowResize);
     }
     getWidth() {
         return this.getBoundingClientRect().width;
     }
+    getHeight() {
+        return this.getBoundingClientRect().height;
+    }
     onMetric(value) {
         this.metricValue = value;
         if(exists(this.workout.intervals)) this.initRender();
+    }
+    onWindowResize(e) {
+        this.width = this.getWidth();
+        this.height = this.getHeight();
+        this.initRender();
     }
     onUpdate(value) {
         this.workout = value;
@@ -66,13 +78,15 @@ class WorkoutGraph extends HTMLElement {
     }
     progress() {
         const rect = this.dom.intervals[this.index].getBoundingClientRect();
-        this.dom.active.style.left  = `${rect.left}px`;
+        this.dom.active.style.left  = `${rect.left - this.getBoundingClientRect().left}px`;
         this.dom.active.style.width = `${rect.width}px`;
+        this.dom.active.style.height = `${this.getBoundingClientRect().height}px`;
 
     }
     initRender() {
         const progress = `<div id="progress" class="progress"></div><div id="progress-active"></div>`;
-        this.innerHTML = progress + intervalsToGraph(this.workout.intervals, this.metricValue);
+
+        this.innerHTML = progress + intervalsToGraph(this.workout.intervals, this.metricValue, this.height);
 
         this.dom.progress  = this.querySelector('#progress');
         this.dom.active    = this.querySelector('#progress-active');
