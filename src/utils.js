@@ -118,7 +118,7 @@ function divisors(number) {
     return divisors;
 }
 
-function toDecimalPoint (x, point = 2) {
+function toDecimalPoint(x, point = 2) {
     return Number((x).toFixed(point));
 }
 

@@ -27,6 +27,10 @@ function existance(value, fallback) {
     throw new Error(`existance needs a fallback value `, value);
 }
 
+function isFunction(x) {
+    return equals(typeof x, 'function');
+}
+
 function isArray(x) {
     return Array.isArray(x);
 }
@@ -186,6 +190,10 @@ function sum(xs, path = false) {
 
 function rand(min = 0, max = 10) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function capitalize(str) {
+    return str.trim().replace(/^\w/, (c) => c.toUpperCase());
 }
 
 // Functions
@@ -371,6 +379,7 @@ export {
     equals,
     isNull,
     isUndefined,
+    isFunction,
     exists,
     existance,
     isArray,
@@ -395,6 +404,7 @@ export {
     max,
     sum,
     rand,
+    capitalize,
 
     // functions
     compose,
