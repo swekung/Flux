@@ -109,7 +109,7 @@ describe('Zwo', () => {
     test('Zwo.write', () => {
 
         const input = {
-            meta: {
+            head: {
                 author: 'Flux',
                 name: "Test Workout",
                 category: "Sweet Spot",
@@ -117,7 +117,7 @@ describe('Zwo', () => {
                 sportType: "bike",
                 description: "Description of test workout",
             },
-            intervals: [
+            body: [
                 {element: 'SteadyState', Duration: 10, Power: 0.50},
                 {element: 'SteadyState', Duration: 15, Power: 0.90,},
                 {element: 'SteadyState', Duration: 10, Power: 0.70, Slope: 2.1, Cadence: 90},

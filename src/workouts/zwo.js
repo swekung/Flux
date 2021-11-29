@@ -59,66 +59,6 @@ function Attribute(args = {}) {
     });
 }
 
-function Duration(args = {}) {
-    const defaults = {
-        name:      'Duration',
-        transform: parseInt,
-    };
-
-    const name      = existance(args.name, defaults.name);
-    const transform = existance(args.transform, defaults.transform);
-
-    return Attribute({name, transform});
-}
-
-function Power(args = {}) {
-    const defaults = {
-        name:      'Power',
-        transform: parseFloat,
-    };
-
-    const name      = existance(args.name, defaults.name);
-    const transform = existance(args.transform, defaults.transform);
-
-    return Attribute({name, transform});
-}
-
-function Cadence(args = {}) {
-    const defaults = {
-        name:      'Cadence',
-        transform: parseInt,
-    };
-
-    const name      = existance(args.name, defaults.name);
-    const transform = existance(args.transform, defaults.transform);
-
-    return Attribute({name, transform});
-}
-
-function Slope(args = {}) {
-    const defaults = {
-        name:      'Slope',
-        transform: parseFloat,
-    };
-
-    const name      = existance(args.name, defaults.name);
-    const transform = existance(args.transform, defaults.transform);
-
-    return Attribute({name, transform});
-}
-
-function Repeat(args = {}) {
-    const defaults = {
-        name:      'Repeat',
-        transform: parseInt,
-    };
-
-    const name      = existance(args.name, defaults.name);
-    const transform = existance(args.transform, defaults.transform);
-
-    return Attribute({name, transform});
-}
-
 function attributesToStep(args = {}) {
     const tag    = existance(args.element);
     const filter = existance(args.filter, ((_) => true));
@@ -527,28 +467,28 @@ function Body() {
 }
 
 const Attrs = {
-    Duration:    Duration(),
-    OnDuration:  Duration({name: 'OnDuration'}),
-    OffDuration: Duration({name: 'OffDuration'}),
+    Duration:    Attribute({name: 'Duration', transform: parseInt}),
+    OnDuration:  Attribute({name: 'OnDuration', transform: parseInt}),
+    OffDuration: Attribute({name: 'OffDuration', transform: parseInt}),
 
-    Power:     Power(),
-    OnPower:   Power({name: 'OnPower'}),
-    OffPower:  Power({name: 'OffPower'}),
-    PowerLow:  Power({name: 'PowerLow'}),
-    PowerHigh: Power({name: 'PowerHigh'}),
+    Power:     Attribute({name: 'Power', transform: parseFloat}),
+    OnPower:   Attribute({name: 'OnPower', transform: parseFloat}),
+    OffPower:  Attribute({name: 'OffPower', transform: parseFloat}),
+    PowerLow:  Attribute({name: 'PowerLow', transform: parseFloat}),
+    PowerHigh: Attribute({name: 'PowerHigh', transform: parseFloat}),
 
-    Cadence:     Cadence(),
-    CadenceLow:  Cadence({name: 'CadenceLow'}),
-    CadenceHigh: Cadence({name: 'CadenceHigh'}),
-    CadenceRest: Cadence({name: 'CadenceRest'}),
+    Cadence:     Attribute({name: 'Cadence', transform: parseInt}),
+    CadenceLow:  Attribute({name: 'CadenceLow', transform: parseInt}),
+    CadenceHigh: Attribute({name: 'CadenceHigh', transform: parseInt}),
+    CadenceRest: Attribute({name: 'CadenceRest', transform: parseInt}),
 
-    Slope:     Slope(),
-    OnSlope:   Slope({name: 'OnSlope'}),
-    OffSlope:  Slope({name: 'OffSlope'}),
-    SlopeLow:  Slope({name: 'SlopeLow'}),
-    SlopeHigh: Slope({name: 'SlopeHigh'}),
+    Slope:     Attribute({name: 'Slope', transform: parseFloat}),
+    OnSlope:   Attribute({name: 'OnSlope', transform: parseFloat}),
+    OffSlope:  Attribute({name: 'OffSlope', transform: parseFloat}),
+    SlopeLow:  Attribute({name: 'SlopeLow', transform: parseFloat}),
+    SlopeHigh: Attribute({name: 'SlopeHigh', transform: parseFloat}),
 
-    Repeat: Repeat(),
+    Repeat: Attribute({name: 'Repeat', transform: parseInt}),
 };
 
 const Elements = {
@@ -596,8 +536,8 @@ function read(zwo) {
 }
 
 function write(args = {}) {
-    const headElements = head.write(args.meta);
-    const bodyElements = body.write(args.intervals);
+    const headElements = head.write(args.head);
+    const bodyElements = body.write(args.body);
 
     return `
     <workout_file>
