@@ -70,17 +70,11 @@ class WorkoutList extends HTMLUListElement {
     }
     postInit() { return; }
     connectedCallback() {
-        this.prop = this.getAttribute('prop');
-        this.metricProp = this.getAttribute('metric');
-        xf.sub(`db:${this.prop}`, this.onUpdate.bind(this));
-        xf.sub(`db:${this.metricProp}`, this.onMetric.bind(this));
-        xf.sub('db:workout', this.onWorkout.bind(this));
+        xf.sub(`db:workouts`, this.onUpdate.bind(this));
+        xf.sub(`db:ftp`, this.onMetric.bind(this));
     }
     disconnectedCallback() {
         document.removeEventListener(`db:${this.prop}`, this.onUpdate);
-    }
-    onWorkout(workout) {
-        this.workout = workout;
     }
     onMetric(value) {
         if(!equals(value, this.metric)) {
@@ -91,10 +85,9 @@ class WorkoutList extends HTMLUListElement {
         }
     }
     onUpdate(value) {
-        // if(!equals(value, this.state)) {
-            this.state = value;
-            this.render();
-        // }
+        // state diff and update with append
+        this.state = value;
+        this.render();
     }
     stateToHtml (state, metric, selectedWorkout) {
         return state.reduce((acc, workout, i) => {
@@ -121,20 +114,25 @@ class WorkoutListItem extends HTMLLIElement {
     }
     postInit() { return; }
     connectedCallback() {
-        this.summary = this.querySelector('.workout--short-info');
-        this.description = this.querySelector('.workout--full-info');
-        this.selectBtn = this.querySelector('.workout--select');
-        this.indicator = this.selectBtn;
+        this.dom = {
+            summary: this.querySelector('.workout--short-info'),
+            description: this.querySelector('.workout--full-info'),
+            selectBtn: this.querySelector('.workout--select'),
+            // get indicator() { return this.selectBtn; },
+        };
+        this.dom.indicator = this.dom.selectBtn;
+
         this.id = this.getAttribute('id');
 
         xf.sub('db:workout', this.onWorkout.bind(this));
-        this.summary.addEventListener('pointerup', this.toggleExpand.bind(this));
-        this.selectBtn.addEventListener('pointerup', this.onRadio.bind(this));
+
+        this.dom.summary.addEventListener('pointerup', this.toggleExpand.bind(this));
+        this.dom.selectBtn.addEventListener('pointerup', this.onRadio.bind(this));
     }
     disconnectedCallback() {
         document.removeEventListener('db:workout', this.onWorkout);
-        this.summary.removeEventListener('pointerup', this.toggleExpand);
-        this.selectBtn.removeEventListener('pointerup', this.onRadio);
+        this.dom.summary.removeEventListener('pointerup', this.toggleExpand);
+        this.dom.selectBtn.removeEventListener('pointerup', this.onRadio);
     }
     toggleExpand(e) {
         if(this.isExpanded) {
@@ -144,11 +142,11 @@ class WorkoutListItem extends HTMLLIElement {
         }
     }
     expand() {
-        this.description.style.display = 'block';
+        this.dom.description.style.display = 'block';
         this.isExpanded = true;
     }
     collapse() {
-        this.description.style.display = 'none';
+        this.dom.description.style.display = 'none';
         this.isExpanded = false;
     }
     toggleSelect(id) {
@@ -162,11 +160,11 @@ class WorkoutListItem extends HTMLLIElement {
         }
     }
     select() {
-        this.indicator.innerHTML = radioOn;
+        this.dom.indicator.innerHTML = radioOn;
         this.isSelected = true;
     }
     diselect() {
-        this.indicator.innerHTML = radioOff;
+        this.dom.indicator.innerHTML = radioOff;
         this.isSelected = false;
     }
     onWorkout(workout) {
@@ -175,7 +173,7 @@ class WorkoutListItem extends HTMLLIElement {
     }
     onRadio(e) {
         e.stopPropagation();
-        xf.dispatch('ui:workout:select', this.id);
+        xf.dispatch('ui:workoutSelect', this.id);
     }
     onUpdate(value) {
         if(!equals(value, this.state)) {

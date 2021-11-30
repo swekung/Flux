@@ -12,7 +12,7 @@ class Upload extends HTMLInputElement {
     }
     onSubmit(e) {
         const file = e.target.files[0];
-        xf.dispatch('ui:workout:upload', file);
+        xf.dispatch('ui:workoutUpload', file);
     }
 }
 

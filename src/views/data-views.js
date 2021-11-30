@@ -61,11 +61,14 @@ class DataView extends HTMLElement {
     shouldUpdate(value) {
         return !equals(value, this.state) && !this.disabled;
     }
+    updataState(value) {
+        this.state = value;
+    }
     onUpdate(propValue) {
         const value = this.getValue(propValue);
 
         if(this.shouldUpdate(value)) {
-            this.state = value;
+            this.updataState(value);
             this.render();
         }
     }
@@ -120,7 +123,7 @@ class IntervalTime extends DataView {
 customElements.define('interval-time', IntervalTime);
 
 
-class CadenceView extends DataView {
+class CadenceValue extends DataView {
     getDefaults() {
         return {
             prop: 'db:cadence',
@@ -128,10 +131,10 @@ class CadenceView extends DataView {
     }
 }
 
-customElements.define('cadence-view', CadenceView);
+customElements.define('cadence-value', CadenceValue);
 
 
-class HeartRateView extends DataView {
+class HeartRateValue extends DataView {
     getDefaults() {
         return {
             prop: 'db:heartRate',
@@ -139,7 +142,7 @@ class HeartRateView extends DataView {
     }
 }
 
-customElements.define('heart-rate-view', HeartRateView);
+customElements.define('heart-rate-value', HeartRateValue);
 
 
 class WorkoutName extends DataView {
@@ -155,30 +158,79 @@ class WorkoutName extends DataView {
 
 customElements.define('workout-name', WorkoutName);
 
-class PowerView extends DataView {
-    config() {
-        this.buffer = [];
-        this.smoothing = 0;
-        this.tolerance = 10;
-        this.lastUpdate = Date.now();
-        xf.sub('db:powerSmoothing', this.onPowerSmoothing.bind(this));
+
+class PowerTarget extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:powerTarget',
+        };
+    }
+}
+
+customElements.define('power-target', PowerTarget);
+
+class SlopeTarget extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:slopeTarget',
+        };
+    }
+    transform(state) {
+        return state.toFixed(1);
+    }
+}
+
+customElements.define('slope-target', SlopeTarget);
+
+class PowerAvg extends DataView {
+    postInit() {
+        this.prev = 0;
+        this.length = 0;
     }
     getDefaults() {
         return {
             prop: 'db:power',
         };
     }
-    isSmoothingOff() {
-        return equals(this.smoothing, 0);
+    updataState(value) {
+        if(equals(this.state, 0) && equals(value, 0)) {
+            this.state = 0;
+        } else {
+            this.length += 1;
+            this.state = (value + ((this.length - 1) * this.state)) / this.length;
+        }
+    }
+    transform(state) {
+        return Math.floor(state);
+    }
+}
+
+customElements.define('power-avg', PowerAvg);
+
+class PowerValue extends DataView {
+    postInit() {
+        this.period = 1;
+        this.buffer = [];
+        this.bufferLength = 0;
+    }
+    subs() {
+        xf.sub(`${this.prop}`, this.onUpdate.bind(this));
+        xf.sub('db:powerSmoothing', this.onPowerSmoothing.bind(this));
+    }
+    unsubs() {
+        xf.unsub(`${this.prop}`, this.onUpdate.bind(this));
+        xf.unsub('db:powerSmoothing', this.onPowerSmoothing.bind(this));
+    }
+    getDefaults() {
+        return {
+            prop: 'db:power',
+        };
     }
     canUpdate() {
-        const elapsed = Date.now() - this.lastUpdate;
-        return (this.smoothing - elapsed) < this.tolerance;
+        return this.bufferLength >= this.period;
     }
     shouldUpdate(value) {
-        if(this.isSmoothingOff()) {
-            return !equals(value, this.state) && !this.disabled;
-        } else if(this.canUpdate()) {
+        if(this.canUpdate()) {
             return !equals(value, this.state) && !this.disabled;
         } else {
             return false;
@@ -188,28 +240,37 @@ class PowerView extends DataView {
         const value = this.getValue(propValue);
 
         this.buffer.push(value);
+        this.bufferLength += 1;
 
         if(this.shouldUpdate()) {
             this.state = avg(this.buffer);
             this.buffer = [];
-            this.lastUpdate = Date.now();
+            this.bufferLength = 0;
             this.render();
         }
     }
     onPowerSmoothing(value) {
-        this.smoothing = value;
+        this.period = value;
+    }
+    transform(state) {
+        return Math.floor(state);
     }
 }
 
-customElements.define('power-view', PowerView);
+customElements.define('power-value', PowerValue);
 
 export {
     DataView,
+
     TimerTime,
     IntervalTime,
-    CadenceView,
-    HeartRateView,
-    PowerView,
+    CadenceValue,
+    HeartRateValue,
+    PowerAvg,
+    PowerValue,
+
+    SlopeTarget,
+    PowerTarget,
 
     WorkoutName,
 }

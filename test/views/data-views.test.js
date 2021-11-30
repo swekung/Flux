@@ -3,7 +3,7 @@
  */
 
 import { JSDOM } from 'jsdom';
-import { DataView, TotalTime, PowerView } from '../../src/views/data-views.js';
+import { DataView, TotalTime, PowerValue } from '../../src/views/data-views.js';
 import { xf, rand, avg } from '../../src/functions.js';
 
 
@@ -67,7 +67,7 @@ let db = {
         }
     },
     power: 0,
-    powerSmoothing: 0,
+    powerSmoothing: 1,
     workout: {
         name: 'free ride',
     }
@@ -190,84 +190,112 @@ describe('WorkoutName', () => {
 
 });
 
-describe('PowerView', () => {
+describe('PowerValue', () => {
 
-    test('power-view', () => {
-        window.document.body.innerHTML = `<power-view id="power-view">--</power-view>`;
+    test('power-value', () => {
+        window.document.body.innerHTML = `<power-value id="power-value">--</power-value>`;
 
-        expect(document.querySelector('#power-view').textContent).toBe('--');
+        expect(document.querySelector('#power-value').textContent).toBe('--');
 
         xf.dispatch('power-set', 0);
-        expect(document.querySelector('#power-view').textContent).toBe('0');
+        expect(document.querySelector('#power-value').textContent).toBe('0');
 
         xf.dispatch('power-set', 84);
-        expect(document.querySelector('#power-view').textContent).toBe('84');
+        expect(document.querySelector('#power-value').textContent).toBe('84');
 
         xf.dispatch('power-set', 184);
-        expect(document.querySelector('#power-view').textContent).toBe('184');
+        expect(document.querySelector('#power-value').textContent).toBe('184');
     });
 
-    jest.useFakeTimers();
-
-    test.skip('power-view with smoothing 1 second', () => {
-        //
-        // find a way to mock or Date.now()
-        // or pass it in a testable way in the component
-        //
-
-        window.document.body.innerHTML = `<power-view id="power-view">--</power-view>`;
-
-        let startTime = 1632833074934;
-
-        function now(startTime, i) {
-            return function() {
-                return startTime += i;
-            };
-        }
-
-        Date.now = jest.fn(() => startTime);
+    test('power-value with 1 second smoothing on 4Hz power data', () => {
+        window.document.body.innerHTML = `<power-value id="power-value">--</power-value>`;
 
         let i      = 0;
-        const data = [100, 102, 103, 104, 118, 117, 110, 103];
-        const avg1 = avg(data.slice(0,4));
-        const avg2 = avg(data.slice(4,8));
+        const data = [100, 102, 103, 104,  118, 117, 110, 103,  103, 104, 105, 106];
+        const avg1 = Math.floor(avg(data.slice(0,4)));
+        const avg2 = Math.floor(avg(data.slice(4,8)));
+        const avg3 = Math.floor(avg(data.slice(8,12)));
 
-        xf.dispatch('power-smoothing-set', 1000);
+        xf.dispatch('power-smoothing-set', 4);
 
         function onInterval() {
             xf.dispatch('power-set', data[i]);
             i++;
         }
 
-        expect(document.querySelector('#power-view').textContent).toBe('--');
+        expect(document.querySelector('#power-value').textContent).toBe('--');
 
-        Date.now = jest.fn(() => startTime + (250 * 1));
-        jest.advanceTimersByTime((250 * 1));
+        onInterval();
+        onInterval();
+        onInterval();
         onInterval();
 
-        Date.now = jest.fn(() => startTime + (250 * 2));
-        jest.advanceTimersByTime((250 * 2));
+        expect(document.querySelector('#power-value').textContent).toBe(`${avg1}`);
+
+        onInterval();
+        onInterval();
+        onInterval();
         onInterval();
 
-        Date.now = jest.fn(() => startTime + (250 * 3));
-        jest.advanceTimersByTime((250 * 3));
+        expect(document.querySelector('#power-value').textContent).toBe(`${avg2}`);
+
+        onInterval();
+        onInterval();
+        onInterval();
         onInterval();
 
-        Date.now = jest.fn(() => startTime + (250 * 4));
-        // jest.advanceTimersByTime((250 * 4));
-        jest.advanceTimersByTime((250 * 4) + 50);
-        onInterval();
-
-        expect(document.querySelector('#power-view').textContent).toBe(`${avg1}`);
-
-        Date.now = jest.fn(() => startTime + (250 * 5));
-        jest.advanceTimersByTime((250 * 5));
-        onInterval();
-
-        expect(document.querySelector('#power-view').textContent).toBe(`${avg2}`);
-
+        expect(document.querySelector('#power-value').textContent).toBe(`${avg3}`);
     });
 });
+
+describe('PowerAvg', () => {
+
+    test('power-avg', () => {
+        window.document.body.innerHTML = `<power-avg id="power-avg">--</power-avg>`;
+
+        let i      = 0;
+        const data = [100, 102, 103, 104,  118, 117, 110, 103,  103, 104,  107, 108];
+
+        function dataAvg(start = 0, end = data.length) {
+            return `${Math.floor(avg(data.slice(start, end)))}`;
+        }
+
+        xf.dispatch('power-smoothing-set', 4);
+
+        function onInterval() {
+            xf.dispatch('power-set', data[i]);
+            i++;
+        }
+
+        expect(document.querySelector('#power-avg').textContent).toBe('--');
+
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(`${data[0]}`);
+
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(dataAvg(0,2));
+
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(dataAvg(0,3));
+
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(dataAvg(0,4));
+
+        onInterval();
+        onInterval();
+        onInterval();
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(dataAvg(0,8));
+
+        onInterval();
+        onInterval();
+        onInterval();
+        onInterval();
+        expect(document.querySelector('#power-avg').textContent).toBe(dataAvg(0,12));
+    });
+});
+
+
 
 
 // describe('', () => {

@@ -62,6 +62,9 @@ class Watch extends HTMLElement {
     onWorkoutStart(e) { xf.dispatch('ui:workoutStart'); }
     onWorkoutPause(e) { xf.dispatch('ui:workoutPause'); }
     onWatchStatus({timer, workout}) {
+        if(equals(workout, 'init')) {
+            this.renderInit(this.dom);
+        }
         if(equals(timer, 'started')) {
             this.renderStarted(this.dom);
         }
@@ -91,11 +94,13 @@ class Watch extends HTMLElement {
 
     }
     renderInit(dom) {
+        dom.start.style.display = 'inline-block';
         dom.pause.style.display = 'none';
         dom.lap.style.display   = 'none';
         dom.stop.style.display  = 'none';
         dom.save.style.display  = 'none';
 
+        dom.workoutStart.style.display = 'inline-block';
         dom.workoutPause.style.display = 'none';
     };
     renderStarted(dom) {

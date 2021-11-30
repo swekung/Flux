@@ -75,23 +75,6 @@ class EffectDisplay extends HTMLElement {
 
 customElements.define('effect-display', EffectDisplay);
 
-class TimeDisplay extends DataDisplay {
-    postInit() {
-        this.state = 0;
-        this.form = this.getAttribute('form') || this.defaultForm();
-
-        this.compact = false;
-        if(this.form === 'hh:mm:ss') this.compact = false;
-        if(this.form === 'mm:ss') this.compact = true;
-    }
-    defaultForm() { return 'hh:mm:ss'; }
-    render() {
-        this.textContent = formatTime({value: this.state, format: this.form});
-    }
-}
-
-customElements.define('time-display', TimeDisplay);
-
 class DistanceDisplay extends DataDisplay {
     postInit() {
         this.measurement = models.measurement.default;
@@ -260,5 +243,4 @@ class DeviceInfoDisplay extends HTMLElement {
 
 customElements.define('device-info-display', DeviceInfoDisplay);
 
-export { DataDisplay, TimeDisplay };
-
+export { DataDisplay };
