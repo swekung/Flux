@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { idb } from '../../src/storage/idb.js';
+import { IDB, setId } from '../../src/storage/idb.js';
 import indexedDB from 'fake-indexeddb';
 
 window.indexedDB = indexedDB;
@@ -14,6 +14,8 @@ describe('IDB', () => {
         error: console.error,
         warn: console.warn,
     };
+
+    const idb = IDB();
 
     const values = [
         {id: '{1ec38b5c-9a08-48e0-c000-09de191988b5}', one: 1},
@@ -34,8 +36,8 @@ describe('IDB', () => {
     });
 
     test('add', async () => {
-        let resAdd0 = await idb.add('numbers', idb.setId(values[0]));
-        let resAdd1 = await idb.add('numbers', idb.setId(values[1]));
+        let resAdd0 = await idb.add('numbers', setId(values[0]));
+        let resAdd1 = await idb.add('numbers', setId(values[1]));
 
         expect(resAdd0).toBe('{1ec38b5c-9a08-48e0-c000-09de191988b5}');
         expect(resAdd1).toBe( '{1ec38b5c-9a08-48e0-c000-09de191988b4}');
@@ -58,7 +60,7 @@ describe('IDB', () => {
     });
 
     test('put', async () => {
-        let resPut0 = await idb.put('numbers', idb.setId(valuesUpdated[0]));
+        let resPut0 = await idb.put('numbers', setId(valuesUpdated[0]));
 
         expect(resPut0).toBe('{1ec38b5c-9a08-48e0-c000-09de191988b5}');
 

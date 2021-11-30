@@ -1,10 +1,10 @@
 import { xf } from '../src/functions.js';
-import { rand } from '../src/utils.js';
+import { rand } from '../src/functions.js';
+// import { rand } from './functions.js';
 
 class TrainerMock {
     constructor() {
         this.powerTarget = 180;
-        // this.init();
     }
     init() {
         const self = this;
@@ -36,7 +36,7 @@ class TrainerMock {
         clearInterval(self.interval);
     }
     broadcast(handler) {
-        const interval = setInterval(handler, 1000);
+        const interval = setInterval(handler, 250);
         return interval;
     }
     indoorBikeData() {
@@ -50,11 +50,12 @@ class TrainerMock {
         this.powerTarget = powerTarget;
     }
     power(prev) {
-        let low = rand(1,100);
-        if(low === 90) {
-            return 0;
-        }
-        return prev + rand(-8, 8);
+        // let low = rand(1,100);
+        // if(low === 90) {
+        //     return 0;
+        // }
+        // return prev + rand(-8, 8);
+        return prev + rand(-10, 10);
     }
     cadence(prev) {
         return prev + rand(0, 1);

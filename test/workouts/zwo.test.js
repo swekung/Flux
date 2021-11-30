@@ -148,8 +148,9 @@ describe('Zwo', () => {
 
         let res = zwo.write(input);
 
-        expect(removeWhiteSpace(res)).toStrictEqual(removeWhiteSpace(expected));
+        expect(removeWhiteSpace(res)).toEqual(removeWhiteSpace(expected));
     });
+
 });
 
 describe('Head', () => {
