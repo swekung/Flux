@@ -2,7 +2,6 @@ import { xf } from './functions.js';
 import './db.js';
 import './views/views.js';
 import './connectionManager.js';
-import './watch.js';
 import './lock.js';
 
 function startServiceWorker() {

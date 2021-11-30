@@ -3,8 +3,18 @@
  */
 
 import { first, last, xf } from '../src/functions.js';
-import { Timer, WorkoutRunner } from '../src/watch.js';
+import { Timer, WorkoutRunner } from '../src/watch/timer.js';
+import { ActivityData, Record, Lap, Events } from '../src/watch/activity-data.js';
+import { Watch } from '../src/watch/watch.js';
+
+import { page } from './page.js';
 import { watch } from '../src/views/watch.js';
+
+import { JSDOM } from 'jsdom';
+
+import indexedDB from 'fake-indexeddb';
+
+window.indexedDB = indexedDB;
 
 const workoutJS = {
     id: "{1ec20f99-b3d8-4eb9-c000-be96e947897a}",
@@ -23,334 +33,146 @@ const workoutJS = {
     ],
 };
 
-describe('Timer', () => {
+describe('Watch View', () => {
 
-    test('init with startTime, timerTime, elapsedTime', () => {
-        const startTime   = 1632833074934;
-        const elapsedTime = 10000;
-        const endTime     = startTime + elapsedTime; // 10000 ms
-        const timerTime   = 10; // 10 seconds
+    global.console = {
+        log: jest.fn(),
+        error: console.error,
+        warn: console.warn,
+    };
 
-        Date.now = jest.fn(() => endTime);
+    const dom = new JSDOM();
+    window.document.body.innerHTML = page;
 
-        const timer = Timer({startTime, timerTime});
-
-        expect(timer.getStartTime()).toBe(startTime);
-        expect(timer.getTimerTime()).toBe(timerTime);
-        expect(timer.getElapsedTime()).toBe(elapsedTime);
-        expect(timer.getState()).toEqual({status: 'stopped', timerTime, elapsedTime, startTime});
+    test('connection-switch', () => {
+        expect(document.querySelector('#switch-controllable .switch--label').textContent).toBe('Controllable');
+        expect(document.querySelector('#switch-hrm .switch--label').textContent).toBe('HRM');
     });
 
-    test('init status', () => {
-        expect(Timer().getStatus()).toBe('stopped');
-        expect(Timer({status: 'started'}).getStatus()).toBe('started');
-        expect(Timer({status: 'paused'}).getStatus()).toBe('paused');
-        expect(Timer({status: 'stopped'}).getStatus()).toBe('stopped');
+    test('time-display', () => {
+        expect(document.querySelector('#interval-time').textContent).toBe('--:--');
+        expect(document.querySelector('#elapsed-time').textContent).toBe('--:--:--');
     });
 
-    jest.useFakeTimers();
 
-    test('start -> pause -> resume -> pause -> stop -> reset', () => {
-        const startTime = 1632833074934;
-        const endTime   = startTime + 7000;
-
-        Date.now = jest.fn(() => endTime);
-        const onTick   = jest.fn();
-        const onStart  = jest.fn();
-        const onPause  = jest.fn();
-        const onResume = jest.fn();
-        const onStop   = jest.fn();
-
-        const timer = Timer({startTime, onTick, onStart, onPause, onResume, onStop});
-
-
+    test('watch-control', async () => {
         // init
-        expect(timer.getStatus()).toBe('stopped');
+        // jest.fn()
 
-        // start
-        timer.start();
+        let db = { power: 180 };
 
-        expect(timer.getStatus()).toBe('started');
+        let watch = Watch({});
 
-        // pause 1
-        setTimeout(_ => timer.pause(), 2000);
-        jest.advanceTimersByTime(2000);
+        await watch.init({db: db});
 
-        expect(timer.getStatus()).toBe('paused');
-        expect(onTick).toHaveBeenCalledTimes(2);
+        watch.setWorkout(workoutJS);
+        // end init
 
-        // resume
-        setTimeout(_ => timer.resume(), 2000);
-        jest.advanceTimersByTime(2000);
+        expect(document.querySelector('#watch-pause').style.display).toBe('none');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(onTick).toHaveBeenCalledTimes(2);
-        expect(timer.getStatus()).toBe('started');
+        xf.dispatch('ui:timerStart');
 
-        // pause 2
-        setTimeout(_ => timer.pause(), 2000);
-        jest.advanceTimersByTime(2000);
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(timer.getStatus()).toBe('paused');
-        expect(onTick).toHaveBeenCalledTimes(4);
+        xf.dispatch('ui:timerPause');
 
-        // stop
-        setTimeout(_ => timer.stop(), 1000);
-        jest.advanceTimersByTime(1000);
+        expect(document.querySelector('#watch-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-pause').style.display).toBe('none');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('inline-block');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(timer.getStatus()).toBe('stopped');
-        expect(timer.getTimerTime()).toBe(4);
+        xf.dispatch('ui:timerResume');
 
-        expect(onTick.mock.calls).toEqual(
-            [[{timerTime:  1, elapsedTime: 0}],
-             [{timerTime:  2, elapsedTime: 0}],
-             [{timerTime:  3, elapsedTime: 0}],
-             [{timerTime:  4, elapsedTime: 0}]]);
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
 
-        expect(onStart).toHaveBeenCalledTimes(1);
-        expect(onPause).toHaveBeenCalledTimes(2);
-        expect(onResume).toHaveBeenCalledTimes(1);
-        expect(onStop).toHaveBeenCalledTimes(1);
-        expect(onTick).toHaveBeenCalledTimes(4);
+        xf.dispatch('ui:workoutStart');
 
-        // reset
-        setTimeout(_ => timer.reset(), 1000);
-        jest.advanceTimersByTime(1000);
+        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-pause').style.display).toBe('inline-block');
 
-        expect(timer.getStatus()).toBe('stopped');
-        expect(timer.getTimerTime()).toBe(0);
-        expect(timer.getElapsedTime()).toBe(0);
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        xf.dispatch('ui:workoutPause');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#workout-pause').style.display).toBe('none');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        xf.dispatch('ui:workoutStart');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-pause').style.display).toBe('inline-block');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        xf.dispatch('ui:timerPause');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-pause').style.display).toBe('none');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('inline-block');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#workout-pause').style.display).toBe('none');
+
+        xf.dispatch('ui:timerResume');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('none');
+        expect(document.querySelector('#watch-pause').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-lap').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-pause').style.display).toBe('inline-block');
+
+        xf.dispatch('ui:timerPause');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-pause').style.display).toBe('none');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('inline-block');
+        expect(document.querySelector('#activity-save').style.display).toBe('none');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#workout-pause').style.display).toBe('none');
+
+        xf.dispatch('ui:timerStop');
+
+        expect(document.querySelector('#watch-start').style.display).toBe('inline-block');
+        expect(document.querySelector('#watch-pause').style.display).toBe('none');
+        expect(document.querySelector('#watch-lap').style.display).toBe('none');
+        expect(document.querySelector('#watch-stop').style.display).toBe('none');
+        expect(document.querySelector('#activity-save').style.display).toBe('inline-block');
+
+        expect(document.querySelector('#workout-start').style.display).toBe('none');
+        expect(document.querySelector('#workout-pause').style.display).toBe('none');
     });
 
-    jest.useFakeTimers();
 });
-
-describe('WorkoutRunner', () => {
-    test('init with defaults', () => {
-
-        const workoutRunner = WorkoutRunner({workout: workoutJS});
-
-        expect(workoutRunner.getIntervals().length).toBe(5);
-        expect(workoutRunner.getLapIndex()).toBe(0);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapTime()).toBe(10);
-        expect(workoutRunner.getStepTime()).toBe(3);
-        expect(workoutRunner.getLapDuration()).toBe(10);
-        expect(workoutRunner.getStepDuration()).toBe(3);
-        expect(workoutRunner.getLap()).toEqual(workoutJS.intervals[0]);
-        expect(workoutRunner.getStep()).toEqual(workoutJS.intervals[0].steps[0]);
-    });
-
-    test('init from running timer status', () => {
-
-        const workoutRunner = WorkoutRunner({
-            workout: workoutJS,
-            lapIndex: 0,
-            stepIndex: 2,
-            lapTime: 2,
-            stepTime: 2,
-        });
-
-        expect(workoutRunner.getIntervals().length).toBe(5);
-        expect(workoutRunner.getLapIndex()).toBe(0);
-        expect(workoutRunner.getStepIndex()).toBe(2);
-        expect(workoutRunner.getLapTime()).toBe(2);
-        expect(workoutRunner.getStepTime()).toBe(2);
-        expect(workoutRunner.getLapDuration()).toBe(10);
-        expect(workoutRunner.getStepDuration()).toBe(4);
-        expect(workoutRunner.getLap()).toEqual(workoutJS.intervals[0]);
-        expect(workoutRunner.getStep()).toEqual(workoutJS.intervals[0].steps[2]);
-    });
-
-    jest.useFakeTimers();
-
-    test('start', () => {
-        // Timers
-        // Lap     Total
-        // 05:00 - 0:00:00
-        // 04:59 - 0:00:01
-        // 03:57 - 0:01:03
-        // 01:00 - 0:04:00
-        // 00:01 - 0:04:59
-        // 01:00 - 0:05:00
-        //
-        // Lap timer doesn’t go to 0, counts down to 1, and jumps to next interval
-
-        function onTick(x) {
-            workoutRunner.tick();
-        }
-
-        const timer = Timer({onTick});
-        const workoutRunner = WorkoutRunner({workout: workoutJS});
-
-        timer.start();
-        workoutRunner.start();
-        setTimeout(_ => 0, 60000);
-
-        // Step 0, Lap 0
-        expect(workoutRunner.getLapIndex()).toBe(0);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapDuration()).toBe(10);
-        expect(workoutRunner.getStepDuration()).toBe(3);
-        expect(workoutRunner.getLapTime()).toBe(10);
-
-
-        jest.advanceTimersByTime(0);
-        expect(workoutRunner.getStepTime()).toBe(3);
-        expect(timer.getTimerTime()).toBe(0);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(2);
-        expect(timer.getTimerTime()).toBe(1);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(1);
-        expect(timer.getTimerTime()).toBe(2);
-
-        // Step 1, Lap 0
-        jest.advanceTimersByTime(1000);
-
-        expect(workoutRunner.getLapIndex()).toBe(0);
-        expect(workoutRunner.getStepIndex()).toBe(1);
-        expect(timer.getTimerTime()).toBe(3);
-        expect(workoutRunner.getStepDuration()).toBe(3);
-        expect(workoutRunner.getLapTime()).toBe(7);
-        expect(workoutRunner.getStepTime()).toBe(3);
-
-        expect(workoutRunner.getStepTime()).toBe(3);
-        expect(timer.getTimerTime()).toBe(3);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(2);
-        expect(timer.getTimerTime()).toBe(4);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(1);
-        expect(timer.getTimerTime()).toBe(5);
-
-        // Step 2, Lap 0
-        jest.advanceTimersByTime(1000);
-
-        expect(workoutRunner.getLapIndex()).toBe(0);
-        expect(workoutRunner.getStepIndex()).toBe(2);
-        expect(workoutRunner.getStepDuration()).toBe(4);
-
-        expect(workoutRunner.getStepTime()).toBe(4);
-        expect(timer.getTimerTime()).toBe(6);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(3);
-        expect(timer.getTimerTime()).toBe(7);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(2);
-        expect(timer.getTimerTime()).toBe(8);
-        jest.advanceTimersByTime(1000);
-        expect(workoutRunner.getStepTime()).toBe(1);
-        expect(timer.getTimerTime()).toBe(9);
-
-        // Step 0, Lap 1
-        jest.advanceTimersByTime(1000);
-
-        expect(workoutRunner.getLapIndex()).toBe(1);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapDuration()).toBe(15);
-        expect(workoutRunner.getStepDuration()).toBe(15);
-
-        expect(workoutRunner.getStepTime()).toBe(15);
-        expect(timer.getTimerTime()).toBe(10);
-
-        jest.advanceTimersByTime(15000);
-
-        // Step 0, Lap 2
-        expect(workoutRunner.getLapIndex()).toBe(2);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapDuration()).toBe(10);
-        expect(workoutRunner.getStepDuration()).toBe(10);
-
-        expect(workoutRunner.getStepTime()).toBe(10);
-        expect(timer.getTimerTime()).toBe(25);
-
-        jest.advanceTimersByTime(10000);
-
-        // Step 0, Lap 3
-        expect(workoutRunner.getLapIndex()).toBe(3);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapDuration()).toBe(15);
-        expect(workoutRunner.getStepDuration()).toBe(15);
-
-        expect(workoutRunner.getStepTime()).toBe(15);
-        expect(timer.getTimerTime()).toBe(35);
-
-        jest.advanceTimersByTime(15000);
-
-        // Step 0, Lap 4
-        expect(workoutRunner.getLapIndex()).toBe(4);
-        expect(workoutRunner.getStepIndex()).toBe(0);
-        expect(workoutRunner.getLapDuration()).toBe(10);
-        expect(workoutRunner.getStepDuration()).toBe(10);
-
-        expect(workoutRunner.getStepTime()).toBe(10);
-        expect(timer.getTimerTime()).toBe(50);
-
-        jest.advanceTimersByTime(9000);
-
-        expect(workoutRunner.getStepTime()).toBe(1);
-        expect(timer.getTimerTime()).toBe(59);
-
-        // Workout Done!
-
-        // Open ended Lap
-        jest.advanceTimersByTime(1000);
-        // expect(workoutRunner.getStepTime()).toBe(0);
-        expect(timer.getTimerTime()).toBe(60);
-    });
-
-    jest.useFakeTimers();
-
-    test('pausing just the workout', () => {
-        // init
-        function onTick(x) {
-            workoutRunner.tick();
-        }
-
-        const timer = Timer({onTick});
-        const workoutRunner = WorkoutRunner({workout: workoutJS});
-
-        timer.start();
-        workoutRunner.start();
-        setTimeout(_ => 0, 60000);
-        // init end
-
-        expect(workoutRunner.getLapTime()).toBe(10);
-        expect(workoutRunner.getStepTime()).toBe(3);
-
-        // pause in the middle of step 1 in lap 0
-        jest.advanceTimersByTime(4000); // 4000
-        workoutRunner.pause();
-
-        expect(timer.getTimerTime()).toBe(4);
-        expect(workoutRunner.getLapTime()).toBe(6);
-        expect(workoutRunner.getStepTime()).toBe(2);
-
-        // resume after 10 seconds
-        jest.advanceTimersByTime(10000); // 14000
-        workoutRunner.resume();
-
-        expect(timer.getTimerTime()).toBe(14);
-        expect(workoutRunner.getLapTime()).toBe(6);
-        expect(workoutRunner.getStepTime()).toBe(2);
-
-        jest.advanceTimersByTime(6000); // 20000
-
-        expect(timer.getTimerTime()).toBe(20);
-        expect(workoutRunner.getLapTime()).toBe(15);
-        expect(workoutRunner.getStepTime()).toBe(15);
-
-        jest.advanceTimersByTime(50000); // 70000
-
-        expect(timer.getTimerTime()).toBe(70);
-    });
-});
-
-
-
-// describe('', () => {
-//     test('', () => {
-//         expect().toBe();
-//     });
-// });
-

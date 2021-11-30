@@ -112,6 +112,7 @@ function ActivityData(args = {}) {
     let records = existance(args.records, defaults.records);
     let laps    = existance(args.laps, defaults.laps);
     let events  = existance(args.events, defaults.events);
+    let db      = existance(args.db);
 
     function getRecords() {
         return records;
@@ -123,6 +124,14 @@ function ActivityData(args = {}) {
 
     function getEvents() {
         return events;
+    }
+
+    function getState() {
+        return {
+            records: getRecords(),
+            laps:    getLaps(),
+            events:  getEvents(),
+        };
     }
 
     function addRecord(record) {
@@ -137,7 +146,7 @@ function ActivityData(args = {}) {
         events.push(event);
     }
 
-    function activityFileName() {
+    function fileName() {
         const now = new Date();
         return `workout-${dateToDashString(now)}.fit`;
     }
@@ -145,7 +154,7 @@ function ActivityData(args = {}) {
     function encode() {
         const fitjsActivity    = fitjs.encode({records, laps, events});
         const activity         = fit.activity.encode(fitjsActivity);
-        const activityFileName = activityFileName();
+        const activityFileName = fileName();
 
         return {
             activityFileName,
@@ -153,16 +162,34 @@ function ActivityData(args = {}) {
         };
     }
 
+    function onRecord() {
+        const record = Record(db);
+        addRecord(record);
+    }
+
+    function onLap() {
+        const lap = Lap(db);
+        addLap(lap);
+    }
+
+    function onEvent(e) {
+        addEvent(e);
+    }
+
     return Object.freeze({
         getRecords,
         getLaps,
         getEvents,
+        getState,
         addRecord,
         addLap,
         addEvent,
+        onRecord,
+        onLap,
+        onEvent,
 
         encode,
-        activityFileName,
+        fileName,
     });
 }
 

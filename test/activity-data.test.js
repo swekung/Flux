@@ -3,9 +3,9 @@
  */
 
 import { first, last, xf } from '../src/functions.js';
-import { Timer, WorkoutRunner } from '../src/watch.js';
-import { ActivityData, Record, Lap, Events } from '../src/models/activity-data.js';
-import { Session } from '../src/session.js';
+import { Timer, WorkoutRunner } from '../src/watch/timer.js';
+import { ActivityData, Record, Lap, Events } from '../src/watch/activity-data.js';
+// import { Watch } from '../src/watch.js';
 
 import { page } from './page.js';
 import { watch } from '../src/views/watch.js';
@@ -41,14 +41,14 @@ describe('ActivityData', () => {
 
         let db = { power: 180 };
 
-        const activityData = ActivityData();
+        const activityData = ActivityData({db});
 
         function onTick(x) {
             workoutRunner.tick();
-            activityData.addRecord(Record(db));
+            activityData.onRecord();
         }
         const timer = Timer({onTick});
-        const workoutRunner = WorkoutRunner({workout: workoutJS,});
+        const workoutRunner = WorkoutRunner({workout: workoutJS});
 
         timer.start();
         workoutRunner.start();

@@ -1,221 +1,135 @@
-import { xf, equals, existance } from './functions.js';
-import { ActivityData, Record, Lap, Events } from './models/activity-data.js';
-import { Timer, WorkoutRunner } from './watch.js';
-import { fileHandler } from './file.js';
+import { xf, existance, exists, equals, empty, isUndefined, last } from './functions.js';
+import { IDB, setId } from './storage/idb.js';
 
-function WorkoutsLib() {
-    let current = [];
+import { Watch } from './watch/watch.js';
+import { ActivityData } from './watch/activity-data.js';
+import { Workouts } from './workouts/workouts.js';
 
-    function getCurrent() {
-    }
-
-    return Object.freeze({getCurrent});
-}
-
-
-function Session(args = {}) {
+function SessionIDBMapper(args = {}) {
     const defaults = {
-        workout: (_ => workoutsLib.getCurrent()),
+        dbName:    'store',
+        storeName: 'session',
+        version:   1,
     };
 
-    const activityData  = ActivityData();
-    const workoutsLib   = WorkoutsLib();
-    const workout       = existance(args.workout);
-    const timer         = Timer({onTick, onStart, onPause, onResume, onStop});
-    const workoutRunner = WorkoutRunner({
-        workout:  workout,
-        onStart:  onWorkoutStart,
-        onPause:  onWorkoutPause,
-        onResume: onWorkoutStart,
-        onFinish: onWorkoutFinish,
-        onLap:    onLap
-    });
+    const idb       = IDB();
+    const dbName    = existance(args.dbName, defaults.dbName);
+    const storeName = existance(args.storeName, defaults.storeName);
+    const version   = existance(args.version, defaults.version);
 
-    let db = args.db;
-
-    //
-    xf.reg('watch', (watch, db) => {
-        db.watch = watch;
-    });
-
-    xf.sub('ui:timerStart', e => { timerStart(); });
-    xf.sub('ui:timerPause', timerPause);
-    xf.sub('ui:timerResume', timerResume);
-    xf.sub('ui:timerLap', timerLap);
-    xf.sub('ui:timerStop', timerStop);
-
-    xf.sub('ui:workoutStart', workoutStart);
-    xf.sub('ui:workoutPause', workoutPause);
-    xf.sub('ui:workoutResume', workoutResume);
-
-    xf.sub('ui:watchLap', watchLap);
-
-    xf.sub('ui:activitySave', save);
-
-    //
-    function getWatch() {
-        return {
-            timer:   timer.getState(),
-            workout: workoutRunner.getState(),
-        };
+    async function backup(data) {
+        await idb.put(storeName, setId(data, 0));
     }
 
-    function getWatchStatus() {
-        const watch = getWatch();
-        return {
-            timer:   watch.timer.status,
-            workout: watch.workout.status,
-        };
-    }
+    async function restore() {
+        const store = await idb.open(dbName, version, storeName);
 
-    //
-    function setWorkout(workout) {
-        workoutRunner.setWorkout(workout);
-    }
-
-    //
-    function onTick(x) {
-        workoutRunner.tick();
-        activityData.addRecord(Record(db));
-
-        xf.dispatch('watch', getWatch());
-    }
-
-    function onLap(x) {
-        activityData.addLap(Lap(x));
-        activityData.addRecord(Record(db));
-    }
-
-    function onStart(x) {
-        activityData.addEvent(Events.TimerStart());
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onPause(x) {
-        activityData.addEvent(Events.TimerPause());
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onResume(x) {
-        activityData.addEvent(Events.TimerStart());
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onStop(x) {
-        activityData.addEvent(Events.TimerStop());
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onWorkoutStart(x) {
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onWorkoutPause(x) {
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    function onWorkoutFinish(x) {
-        xf.dispatch('watch:status', getWatchStatus());
-    }
-
-    //
-    function isWorkoutInProgress() {
-        const workoutStatus = workoutRunner.getStatus();
-        return ['started', 'paused'].includes(workoutStatus);
-    }
-
-    //
-    function timerStart() {
-        timer.start();
-    }
-
-    function timerPause() {
-        timer.pause();
-
-        if(isWorkoutInProgress()) {
-            workoutRunner.pause();
-        }
-    }
-
-    function timerResume() {
-        timer.resume();
-
-        if(isWorkoutInProgress()) {
-            workoutRunner.resume();
-        }
-    }
-
-    function timerLap() {
-        timer.lap();
-    }
-
-    function timerStop() {
-        timer.stop();
-
-        if(isWorkoutInProgress()) {
-            workoutRunner.stop();
-        }
-    }
-
-    function workoutStart() {
-        const workoutStatus = workoutRunner.getStatus();
-        const timerStatus = timer.getStatus();
-
-        if(equals(workoutStatus, 'started')) return;
-        if(equals(workoutStatus, 'stopped')) workoutRunner.start();
-        if(equals(workoutStatus, 'paused'))  workoutRunner.resume();
-        if(equals(timerStatus,   'stopped')) timer.start();
-        if(equals(timerStatus,   'paused'))  timer.resume();
-    }
-
-    function workoutPause() {
-        workoutRunner.pause();
-    }
-
-    function workoutResume() {
-        workoutRunner.resume();
-    }
-
-    function workoutSkip() {
-        workoutRunner.skip();
-    }
-
-    function watchLap() {
-        console.log('watchLap lap', isWorkoutInProgress());
-        if(isWorkoutInProgress()) {
-            console.log('watchLap skip');
-            workoutRunner.skip();
-        } else {
-            timer.lap();
-        }
-    }
-
-    function save() {
-        const { activity, activityFileName } = activityData.encode();
-        const blob = new Blob([activity], {type: 'application/octet-stream'});
-        fileHandler.saveFile()(blob, activityFileName);
+        let data = await idb.get(storeName, 0);
+        return data;
     }
 
     return Object.freeze({
-        getWatch,
-        getWatchStatus,
-
-        setWorkout,
-
-        timerStart,
-        timerPause,
-        timerStop,
-
-        workoutStart,
-        workoutPause,
-        workoutResume,
-        workoutSkip,
-
-        watchLap,
-
-        save,
+        backup,
+        restore,
     });
 }
 
-export { Session };
+const sessionIDBMapper = SessionIDBMapper();
+
+function Session() {
+
+    let workouts;
+    let activity;
+    let watch;
+
+    let state = {};
+
+    function getWorkout() {
+        return state.workout;
+    }
+
+    function getActivity() {
+        return state.activity;
+    }
+
+    function getWatch() {
+        return state.watch;
+    }
+
+    function getState() {
+        let state = {
+            workout:  workouts.getCurrent(),
+            activity: activity.getState(),
+            watch:    watch.getState(),
+        };
+
+        return state;
+    }
+
+    function config(args = {}) {
+        workouts = args.workouts;
+        activity = args.activity;
+        watch    = args.watch;
+    }
+
+    async function backup() {
+        let state = getState();
+
+        if(equals(state.watch.timer.status, 'stopped')) {
+            state.watch.timer.status = 'init';
+            state.watch.workout.status = 'init';
+        }
+
+        await sessionIDBMapper.backup(state);
+    }
+
+    async function restore() {
+        let sessionData = await sessionIDBMapper.restore();
+        state = sessionData;
+        return state;
+    }
+
+    return Object.freeze({
+        backup,
+        restore,
+        getWorkout,
+        getActivity,
+        getWatch,
+        config,
+    });
+}
+
+function App(args = {}) {
+
+    let activity;
+    let watch;
+    const session  = Session();
+    const workouts = Workouts();
+
+    async function init(db) {
+        await session.restore();
+        await workouts.restore({workout: session.getWorkout()});
+
+        activity = ActivityData({db, ...session.getActivity()});
+        watch    = Watch({
+            workout: session.getWorkout(),
+            watch:   session.getWatch(),
+            activity,
+        });
+
+        session.config({workouts, watch, activity});
+    }
+
+    async function backup() {
+        await session.backup();
+        await workouts.backup();
+    }
+
+    return Object.freeze({
+        init,
+        backup,
+    });
+}
+
+export { App, Session, sessionIDBMapper };
 
