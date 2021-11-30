@@ -35,6 +35,7 @@ function IDB(args = {}) {
                 case 0: createStore(storeName);
                 case 1: update();
                 }
+
             };
             openReq.onerror = function() {
                 console.error(`:idb :error :open :db '${name}'`, openReq.error);
@@ -60,7 +61,7 @@ function IDB(args = {}) {
     }
 
     function createStore(name, keyPath = 'id') {
-        if (!db.objectStoreNames.contains(name)) {
+        if(!db.objectStoreNames.contains(name)) {
             db.createObjectStore(name, {keyPath: keyPath});
             console.log(`:idb :create-store '${name}'`);
         } else {
@@ -122,16 +123,6 @@ function IDB(args = {}) {
         return transaction(storeName, 'clear', undefined, 'readwrite');
     }
 
-    function setId(item, id = undefined) {
-        if(!exists(item.id)) {
-            if(!exists(id)) {
-                id = uuid();
-            };
-            Object.assign(item, {id: id});
-        }
-        return item;
-    }
-
     return Object.freeze({
         open,
         createStore,
@@ -142,10 +133,17 @@ function IDB(args = {}) {
         getAll,
         remove,
         clear,
-        setId,
     });
 }
 
-const idb = IDB();
+function setId(item, id = undefined) {
+    if(!exists(item.id)) {
+        if(!exists(id)) {
+            id = uuid();
+        };
+        Object.assign(item, {id: id});
+    }
+    return item;
+}
 
-export { idb };
+export {  IDB, setId };
