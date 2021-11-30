@@ -1,17 +1,9 @@
 import { xf, exists, empty, equals,
          first, second, last } from '../functions.js';
 
-import { inRange, fixInRange, dateToDashString } from '../utils.js';
+import { inRange, fixInRange } from '../utils.js';
 
 import { LocalStorageItem } from '../storage/local-storage.js';
-import { idb } from '../storage/idb.js';
-import { uuid } from '../storage/uuid.js';
-
-import { workouts as workoutsFile }  from '../workouts/workouts.js';
-import { zwo } from '../workouts/zwo.js';
-import { fileHandler } from '../file.js';
-import { fitjs } from '../fit/fitjs.js';
-import { fit } from '../fit/fit.js';
 
 class Model {
     constructor(args) {
@@ -19,7 +11,9 @@ class Model {
         this.prop = args.prop;
         this.default = args.default || this.defaultValue();
         this.prev = args.default;
-        this.set = args.set || this.defaultSet;
+        this.state = args.default || this.defaultValue();
+        this.update = args.update || this.defaultUpdate;
+        this.read = args.read || this.defaultRead;
         this.isValid = args.isValid || this.defaultIsValid;
         this.onInvalid = args.onInvalid || this.defaultOnInvalid;
         this.storage = this.defaultStorage();
@@ -29,30 +23,36 @@ class Model {
     postInit() { return; }
     defaultValue() { return ''; }
     defaultIsValid(value) { return exists(value); }
-    defaultSet(value) {
+    defaultUpdate(value) {
         const self = this;
         if(self.isValid(value)) {
+            self.state = value;
+            self.storage.backup(value);
             return value;
         } else {
             self.defaultOnInvalid(value);
+            self.storage.backup(self.default);
+            self.state = self.default;
             return self.default;
         }
     }
+    defaultRead() {
+        return self.state;
+    }
     defaultOnInvalid(x) {
         const self = this;
-        console.error(`Trying to set invalid ${self.prop}. ${typeof x}`, x);
+        console.error(`Trying to update with invalid ${self.prop}. ${typeof x}`, x);
     }
     defaultStorage() {
         const self = this;
-        return {add: ((x)=>x),
+        return {backup: ((x)=>x),
                 restore: ((_)=> self.default)};
     }
     backup(value) {
         const self = this;
-        self.storage.set(value);
+        self.storage.backup(value);
     }
     restore() {
-        const self = this;
         return self.storage.restore();
     }
 }
@@ -150,24 +150,21 @@ class Target extends Model {
         const self = this;
         return Number.isInteger(value) && inRange(self.min, self.max, value);
     }
-    defaultSet(value) {
-        const self = this;
-        if(isNaN(value)) {
-            self.onInvalid();
-            return self.default;
-        }
-        return fixInRange(self.min, self.max, self.parse(value));
-    }
     parse(value) { return parseInt(value); }
+    set(value) {
+        const self = this;
+        const x = fixInRange(self.min, self.max, self.parse(value));
+        return self.update(x);
+    }
     inc(value) {
         const self = this;
-        const x = value + self.step;
-        return self.set(x);
+        const x = fixInRange(self.min, self.max, self.parse(value + self.step));
+        return self.update(x);
     }
     dec(value) {
         const self = this;
-        const x = value - self.step;
-        return self.set(x);
+        const x = fixInRange(self.min, self.max, self.parse(value - self.step));
+        return self.update(x);
     }
 }
 
@@ -229,8 +226,6 @@ class FTP extends Model {
         self.storage = args.storage(storageModel);
         self.zones = args.zones || self.defaultZones();
         self.percentages = args.percentages || self.defaultPercentages();
-
-        // console.log(self.defaultValue());
     }
     defaultValue() { return 200; }
     defaultIsValid(value) {
@@ -286,6 +281,7 @@ class Weight extends Model {
         return Number.isInteger(value) && inRange(self.min, self.max, value);
     }
 }
+
 class Theme extends Model {
     postInit(args) {
         const self = this;
@@ -298,14 +294,19 @@ class Theme extends Model {
     }
     defaultValue() { return 'dark'; }
     defaultIsValid(value) { return this.values.includes(value); }
-    switch(theme) {
+    switch(value) {
         const self = this;
-        if(theme === first(self.values)) return second(self.values);
-        if(theme === second(self.values)) return first(self.values);
-        self.onInvalid(theme);
-        return self.default;
+        let theme = self.default;
+        if(equals(value, first(self.values))) {
+            theme = second(self.values);
+        }
+        if(equals(value, second(self.values))) {
+            theme = first(self.values);
+        }
+        return self.update(theme);
     }
 }
+
 class Measurement extends Model {
     postInit(args) {
         const self = this;
@@ -318,149 +319,18 @@ class Measurement extends Model {
     }
     defaultValue() { return 'metric'; }
     defaultIsValid(value) { return this.values.includes(value); }
-    switch(theme) {
+    switch(value) {
         const self = this;
-        if(theme === first(self.values)) return second(self.values);
-        if(theme === second(self.values)) return first(self.values);
-        self.onInvalid(theme);
-        return self.default;
-    }
-}
-
-class Workout extends Model {
-    postInit(args) {
-        const self = this;
-    }
-    defaultValue() { return this.parse((first(workoutsFile))); }
-    defaultIsValid(value) {
-        return exists(value);
-    }
-    restore(db) {
-        return first(db.workouts);
-    }
-    async readFromFile(workoutFile) {
-        const workout = await fileHandler.readTextFile(workoutFile);
-        return workout;
-    }
-    parse(workout) {
-        return zwo.parse(workout);
-    }
-    fileName () {
-        const self = this;
-        const now = new Date();
-        return `workout-${dateToDashString(now)}.fit`;
-    }
-    encode(db) {
-        const fitjsActivity = fitjs.encode({records: db.records, laps: db.laps, events: db.events});
-        console.log(fitjsActivity);
-        return fit.activity.encode(fitjsActivity);
-    }
-    download(activity) {
-        const self = this;
-        const blob = new Blob([activity], {type: 'application/octet-stream'});
-        fileHandler.saveFile()(blob, self.fileName());
-    }
-    save(db) {
-        const self = this;
-        self.download(self.encode(db));
-    }
-}
-
-class Workouts extends Model {
-    init(args) {
-        const self = this;
-        self.workoutModel = args.workoutModel;
-    }
-    postInit(args) {
-        const self = this;
-        console.log(self.defaultValue());
-    }
-    defaultValue() {
-        const self = this;
-        return workoutsFile.map((w) => Object.assign(self.workoutModel.parse(w), {id: uuid()}));
-    }
-    defaultIsValid(value) {
-        const self = this;
-        return exists(value);
-    }
-    restore() {
-        const self = this;
-        return self.default;
-    }
-    get(workouts, id) {
-        for(let workout of workouts) {
-            if(equals(workout.id, id)) {
-                return workout;
-            }
+        let measurement = self.default;
+        if(equals(value, first(self.values))) {
+            measurement = second(self.values);
         }
-        console.error(`tring to get a missing workout: ${id}`, workouts);
-        return first(workouts);
-    }
-    add(workouts, workout) {
-        const self = this;
-        workouts.push(Object.assign(workout, {id: uuid()}));
-        return workouts;
-    }
-}
-
-function Session(args = {}) {
-    let name = 'session';
-
-    async function start() {
-        await idb.open('store', 1, 'session');
-    }
-
-    function backup(db) {
-        idb.put('session', idb.setId(dbToSession(db), 0));
-    }
-
-    async function restore(db) {
-        const sessions = await idb.getAll(`${name}`);
-        xf.dispatch(`${name}:restore`, sessions);
-        console.log(`:idb :restore '${name}' :length ${sessions.length}`);
-
-        let session = last(sessions);
-
-        if(!empty(sessions)) {
-            if(session.elapsed > 0) {
-                sessionToDb(db, session);
-            } else {
-                idb.clear(`${name}`);
-            }
+        if(equals(value, second(self.values))) {
+            measurement = first(self.values);
         }
+        return self.update(measurement);
     }
-
-    function sessionToDb(db, session) {
-        return Object.assign(db, session);
-    }
-
-    function dbToSession(db) {
-        const session = {
-            // Workouts
-            workout: db.workout,
-            mode: db.mode,
-            page: db.page,
-
-            // Targets
-            powerTarget: db.powerTarget,
-            resistanceTarget: db.resistanceTarget,
-            slopeTarget: db.slopeTarget,
-            sources: db.sources,
-        };
-
-        return session;
-    }
-
-    return Object.freeze({
-        start,
-        backup,
-        restore,
-        sessionToDb,
-        dbToSession,
-    });
 }
-
-
 
 const power = new Power({prop: 'power'});
 const heartRate = new HeartRate({prop: 'heartRate'});
@@ -480,28 +350,23 @@ const weight = new Weight({prop: 'weight', storage: LocalStorageItem});
 const theme = new Theme({prop: 'theme', storage: LocalStorageItem});
 const measurement = new Measurement({prop: 'measurement', storage: LocalStorageItem});
 
-const workout = new Workout({prop: 'workout'});
-const workouts = new Workouts({prop: 'workouts', workoutModel: workout});
 
-const session = Session();
 
-let models = { power,
-               heartRate,
-               cadence,
-               speed,
-               sources,
-               powerTarget,
-               resistanceTarget,
-               slopeTarget,
-               mode,
-               page,
-               ftp,
-               weight,
-               theme,
-               measurement,
-               workout,
-               workouts,
-               session,
-             };
+const models = {
+    power,
+    heartRate,
+    cadence,
+    speed,
+    sources,
+    powerTarget,
+    resistanceTarget,
+    slopeTarget,
+    mode,
+    page,
+    ftp,
+    weight,
+    theme,
+    measurement,
+};
 
 export { models };
