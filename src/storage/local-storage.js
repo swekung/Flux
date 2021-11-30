@@ -28,6 +28,10 @@ function LocalStorageItem(args = {}) {
         return get();
     }
 
+    function backup(value) {
+        return set(value);
+    }
+
     function get() {
         const value = window.localStorage.getItem(`${key}`);
 
@@ -57,6 +61,7 @@ function LocalStorageItem(args = {}) {
 
     return Object.freeze({
         restore,
+        backup,
         get,
         set,
         remove,
