@@ -2,18 +2,17 @@
 // A collection of common functions that makes JS more functional
 //
 
-
 // Values
 function equals(a, b) {
     return Object.is(a, b);
 }
 
 function isNull(x) {
-    return Object.is(x, null);
+    return equals(x, null);
 }
 
 function isUndefined(x) {
-    return Object.is(x, undefined);
+    return equals(x, undefined);
 }
 
 function exists(x) {
@@ -54,6 +53,45 @@ function isNumber(x) {
 function isAtomic(x) {
     return isNumber(x) || isString(x);
 }
+
+// Functions
+function curry2(fn) {
+    return function (arg1, arg2) {
+        if(exists(arg2)) {
+            return fn(arg1, arg2);
+        } else {
+            return function(arg2) {
+                return fn(arg1, arg2);
+            };
+        }
+    };
+}
+
+function compose2(f, g) {
+    return function(...args) {
+        return f(g(...args));
+    };
+}
+
+function compose(...fns) {
+    return fns.reduce(compose2);
+}
+
+function pipe(...fns) {
+    return fns.reduceRight(compose2);
+}
+
+function repeat(n) {
+    return function(f) {
+        return function(x) {
+            if (n > 0) {
+                return repeat(n - 1)(f)(f(x));
+            } else {
+                return x;
+            }
+        };
+    };
+};
 
 // Collections
 function empty(x) {
@@ -195,33 +233,6 @@ function rand(min = 0, max = 10) {
 function capitalize(str) {
     return str.trim().replace(/^\w/, (c) => c.toUpperCase());
 }
-
-// Functions
-function compose2(f, g) {
-    return function(...args) {
-        return f(g(...args));
-    };
-}
-
-function compose(...fns) {
-    return fns.reduce(compose2);
-}
-
-function pipe(...fns) {
-    return fns.reduceRight(compose2);
-}
-
-function repeat(n) {
-    return function(f) {
-        return function(x) {
-            if (n > 0) {
-                return repeat(n - 1)(f)(f(x));
-            } else {
-                return x;
-            }
-        };
-    };
-};
 
 // Async
 function delay(ms) {
@@ -389,6 +400,12 @@ export {
     isNumber,
     isAtomic,
 
+    // functions
+    compose,
+    pipe,
+    repeat,
+    curry2,
+
     // collections
     first,
     second,
@@ -405,11 +422,6 @@ export {
     sum,
     rand,
     capitalize,
-
-    // functions
-    compose,
-    pipe,
-    repeat,
 
     // async
     delay,

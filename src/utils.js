@@ -69,10 +69,6 @@ function stringToBool(str) {
     return false;
 }
 
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
 const bod = Math.pow(2, 31) / 180;
 const dob = 180 / Math.pow(2, 31);
 
@@ -266,7 +262,6 @@ export {
     mpsToKph,
     scale,
     stringToBool,
-    capitalize,
 
     // Other
     digits,
