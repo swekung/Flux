@@ -1,4 +1,4 @@
-import { exists, existance, first, last, equals, isObject, isFunction, isArray } from './functions.js';
+import { exists, existance, first, last, equals, isObject, isFunction, isArray, delay } from './functions.js';
 
 // format
 function formatTime(args = {}) {
