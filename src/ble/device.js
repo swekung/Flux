@@ -140,6 +140,7 @@ class Device {
                 fail: fail.bind(self),
                 max: 10,
                 wait: 2000});
+
     }
     async reconnect() {
         const self = this;
