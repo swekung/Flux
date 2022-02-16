@@ -1,5 +1,6 @@
 import { xf, exists, equals } from '../functions.js';
 import { models } from './models/models.js';
+// import { trainerMock } from './simulation-scripts.js';
 
 let db = {
     // Data Screen
@@ -254,6 +255,9 @@ xf.reg('app:start', async function(_, db) {
     await models.session.start();
     await models.session.restore(db);
     xf.dispatch('workout:restore');
+
+    // TRAINER MOCK
+    // trainerMock.init();
 });
 
 function start () {

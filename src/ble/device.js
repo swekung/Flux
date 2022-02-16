@@ -1,5 +1,5 @@
 import { xf, existance , equals, exists, delay } from '../functions.js';
-import { time } from '../utils.js';
+import { time, backoff } from '../utils.js';
 import { ble } from './web-ble.js';
 
 // Device
@@ -99,13 +99,47 @@ class Device {
         console.log(`:ble :dropout`, {name: self.name});
         xf.dispatch(`ble:dropout`, self);
 
-        if(exists(self.device.watchAdvertisements)) {
-            console.log(`${time()} watchAdvertisements()`);
-            self.device = await ble.watchAdvertisements(self.deviceId);
-            self.reconnect();
-        } else {
-            self.reconnect();
+        // if(exists(self.device.watchAdvertisements)) {
+        //     console.log(`${time()} watchAdvertisements()`);
+        //     self.device = await ble.watchAdvertisements(self.deviceId);
+        //     self.reconnect();
+        // } else {
+        //     self.reconnect();
+        // }
+
+        async function fn(attempts) {
+            const self = this;
+            console.log(`:retrying :connection :attempts-left ...`);
+            xf.dispatch(`${self.id}:connecting`);
+            console.log(`${time()} gatt.connect()`);
+            await self.device.gatt.connect();
         }
+        async function success(res) {
+            const self = this;
+            console.log(`${time()} gatt.getPrimaryServices()`);
+            self.services = await ble.getPrimaryServices(self.server);
+            self.abortController = new AbortController();
+            self.signal = { signal: self.abortController.signal };
+            console.log(`${time()} start`);
+            await self.start();
+            xf.dispatch(`${self.id}:connected`);
+            xf.dispatch(`${self.id}:name`, self.name);
+            self.autoConnect = true;
+            if(self.isConnected()) {
+                self.device.addEventListener('gattserverdisconnected', self.onDisconnect.bind(self), self.signal);
+            }
+        }
+        function fail(err) {
+            const self = this;
+            xf.dispatch(`${self.id}:disconnected`);
+            self.autoConnect = false;
+            console.error(`:ble 'Could not request ${self.id}'`, err);
+        }
+        backoff({fn: fn.bind(self),
+                success: success.bind(self),
+                fail: fail.bind(self),
+                max: 10,
+                wait: 2000});
     }
     async reconnect() {
         const self = this;

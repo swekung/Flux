@@ -291,7 +291,7 @@ xf.reg('watch:lap', (x, db) => {
             maxPower:         max(db.lap, 'power'),
 
             avgCadence:       Math.round(avg(db.lap, 'cadence')),
-            avgHeartRate:     Math.round(avg(db.lap, 'heartRate')),
+            avgHeartRate:     Math.round(avg(db.lap, 'heart_rate')),
         });
     }
     db.lap = [];

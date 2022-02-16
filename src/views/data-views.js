@@ -495,6 +495,7 @@ class LapsList extends DataView {
         xf.reg(`${this.prop}`, this.onUpdate.bind(this), this.signal);
     }
     toLap(lap) {
+        console.log(lap);
         const index        = this.state.length;
         const duration     = lap.totalElapsedTime;
         const powerLap     = validate([exists, isNumber], lap.avgPower, 0);
