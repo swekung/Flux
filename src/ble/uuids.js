@@ -8,6 +8,7 @@ const services = {
     deviceInformation:   '0000180a-0000-1000-8000-00805f9b34fb',
     fec:                 '6e40fec1-b5a3-f393-e0a9-e50e24dcca9e',
     wahooFitnessMachine: 'a026ee0b-0a7d-4ab3-97fa-f1500f9feb8b',
+    moxySmO2:            '6404d801-4cb9-11e8-b566-0800200c9a66',
 };
 
 const characteristics = {
@@ -44,6 +45,11 @@ const characteristics = {
     // FEC over BLE
     fec2:                          '6e40fec2-b5a3-f393-e0a9-e50e24dcca9e',
     fec3:                          '6e40fec3-b5a3-f393-e0a9-e50e24dcca9e',
+
+    // SmO2 Moxy
+    moxySmO2SensorData:            '6404d804-4cb9-11e8-b566-0800200c9a66',
+    moxySmO2DeviceControl:         '6404d810-4cb9-11e8-b566-0800200c9a66',
+    moxySmO2ControlPoint:          '6404d811-4cd9-11e8-b566-0800200c9a66',
 
     // Wahoo Fitness Machine
     wahooFitnessMachineControlPoint:   'a026e037-0a7d-4ab3-97fa-f1500f9feb8b',

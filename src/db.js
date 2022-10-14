@@ -10,6 +10,8 @@ let db = {
     cadence: models.cadence.default,
     speed: models.speed.default,
     sources: models.sources.default,
+    smo2: models.smo2.default,
+    thb: models.thb.default,
 
     speedVirtual: models.virtualState.speed,
     altitude: models.virtualState.altitude,
@@ -43,6 +45,7 @@ let db = {
     // UI options
     powerSmoothing: 0,
     dataTileSwitch: models.dataTileSwitch.default,
+    graphSwitch: models.graphSwitch.default,
     librarySwitch: 0,
 
     // Workouts
@@ -93,6 +96,14 @@ xf.reg(models.cadence.prop, (cadence, db) => {
 
 xf.reg(models.speed.prop, (speed, db) => {
     db.speed = speed;
+});
+
+xf.reg(models.smo2.prop, (smo2, db) => {
+    db.smo2 = smo2;
+});
+
+xf.reg(models.thb.prop, (thb, db) => {
+    db.thb = thb;
 });
 
 xf.reg(models.sources.prop, (sources, db) => {
@@ -153,6 +164,11 @@ xf.reg('ui:mode-set', (mode, db) => {
 xf.reg('ui:data-tile-switch-set', (index, db) => {
     db.dataTileSwitch = index;
     models.dataTileSwitch.backup(db.dataTileSwitch);
+});
+
+xf.reg('ui:graph-switch-set', (index, db) => {
+    db.graphSwitch = index;
+    models.graphSwitch.backup(db.graphSwitch);
 });
 
 xf.reg('ui:library-switch-set', (index, db) => {
@@ -296,6 +312,7 @@ xf.reg('app:start', async function(_, db) {
     db.measurement = models.measurement.set(models.measurement.restore());
     db.volume = models.volume.set(models.volume.restore());
     db.dataTileSwitch = models.dataTileSwitch.set(models.dataTileSwitch.restore()),
+    db.graphSwitch = models.graphSwitch.set(models.graphSwitch.restore()),
 
     db.sources = models.sources.set(models.sources.restore());
 

@@ -155,4 +155,41 @@ class TrainerMock {
 
 const trainerMock = new TrainerMock();
 
+function MoxyMock() {
+    let interval;
+
+    function start() {
+        console.warn('|------------------------|');
+        console.warn('|Trainer Mock Data is ON!|');
+        console.warn('|------------------------|');
+
+        self.id = 'ble:moxy';
+        self.name = 'Moxy Mock';
+
+        xf.dispatch(`${self.id}:connected`);
+        xf.dispatch(`${self.id}:name`, self.name);
+
+        interval = broadcast(sensorData.bind(self));
+    }
+    function stop() {
+        console.warn('|-------------------------|');
+        console.warn('|Trainer Mock Data is OFF!|');
+        console.warn('|-------------------------|');
+        clearInterval(self.interval);
+    }
+
+    function run() {
+    }
+
+    function broadcast(handler) {
+        const interval = setInterval(handler, 1000);
+        return interval;
+    }
+
+    return Object.freeze({
+        start,
+        stop,
+    });
+}
+
 export { trainerMock };

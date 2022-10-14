@@ -763,6 +763,7 @@ class InstantPowerGraph extends HTMLElement {
 customElements.define('instant-power-graph', InstantPowerGraph);
 
 
+// Refactoring
 class PowerGraph extends HTMLElement {
     constructor() {
         super();
@@ -782,7 +783,118 @@ class PowerGraph extends HTMLElement {
 }
 
 customElements.define('power-graph', PowerGraph);
+// end Refactoring
 
+class MoxyGraph extends HTMLElement {
+    constructor() {
+        super();
+        this.postInit();
+    }
+    postInit() {
+        this.smo2Prop = 'db:smo2';
+        this.thbProp = 'db:thb';
+        this.smo2 = 0;
+        this.thb = 0;
+        this.smo2X = 0;
+        this.selectors = {
+            // canvas: 'svg',
+            canvas: '#moxy-graph',
+        };
+    }
+    connectedCallback() {
+        const self = this;
+        this.abortController = new AbortController();
+        this.signal = { signal: self.abortController.signal };
+
+        // this.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100"></svg>`;
+        this.innerHTML = `<canvas id="moxy-graph"></canvas>`;
+
+        this.$canvas = this.querySelector(this.selectors.canvas);
+        this.ctx = this.$canvas.getContext("2d");
+
+
+        xf.sub(`${this.smo2Prop}`, this.onSmO2.bind(this), this.signal);
+        xf.sub(`${this.thbProp}`, this.onTHb.bind(this), this.signal);
+    }
+    disconnectedCallback() {
+        this.abortController.abort();
+    }
+    getViewPort() {
+        const rect = this.getBoundingClientRect();
+
+        return {
+            width: rect.width,
+            height: rect.height,
+            left: rect.left,
+            aspectRatio: rect.width / rect.height,
+        };
+    }
+    onSmO2(value) {
+        this.smo2 = value;
+        // this.renderSmO2(this.smo2);
+    }
+    onTHb(value) {
+        this.thb = value;
+        // this.renderTHb(this.thb);
+    }
+    toSmO2(smo2) {
+        const self = this;
+        this.smo2Xinc = 10;
+        this.smo2X += this.smo2Xinc;
+        const x = this.smo2X;
+        const y = this.viewPort.height * (this.smo2 / 100);
+        console.log({x, y, smo2: self.smo2, h: self.viewPort.height});
+        return `<circle cx="${x}" cy="${y}" r="10" fill="#22976C"/>`;
+    }
+    toTHb(thb) {
+    }
+    renderSmO2(smo2) {
+        // this.viewPort = this.getViewPort();
+        this.smo2Count += 1;
+
+        const x = this.smo2X;
+        const y = this.smo2Y;
+
+    }
+    renderTHb(thb) {
+        // this.insertAdjacentHTML('beforeend', this.toTHb(thb));
+        this.thbCount += 1;
+    }
+}
+
+customElements.define('moxy-graph', MoxyGraph);
+
+class SmO2Value extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:smo2',
+        };
+    }
+    subs() {
+        xf.sub(`${this.prop}`, this.onUpdate.bind(this), this.signal);
+    }
+    transform(state) {
+        return toFixed(state, 1);
+    }
+}
+
+customElements.define('smo2-value', SmO2Value);
+
+class THbValue extends DataView {
+    getDefaults() {
+        return {
+            prop: 'db:thb',
+        };
+    }
+    subs() {
+        xf.sub(`${this.prop}`, this.onUpdate.bind(this), this.signal);
+    }
+    transform(state) {
+        return toFixed(state, 2);
+    }
+}
+
+customElements.define('thb-value', THbValue);
 
 class SwitchGroup extends HTMLElement {
     constructor() {
@@ -886,6 +998,32 @@ class DataTileSwitchGroup extends SwitchGroup {
 }
 
 customElements.define('data-tile-switch-group', DataTileSwitchGroup);
+
+class GraphSwitchGroup extends SwitchGroup {
+    postInit() {
+        this.prop = 'graphSwitch';
+        this.effect = 'ui:graph-switch-set';
+    }
+    config() {
+        this.$tab1 = document.querySelector('#graph-power'); // tab 0
+        this.$tab2 = document.querySelector('#graph-moxy');  // tab 1
+
+        this.renderEffect(this.state);
+    }
+    renderEffect(state) {
+        if(equals(state, 0)) {
+            this.$tab1.classList.add('active');
+            this.$tab2.classList.remove('active');
+        }
+        if(equals(state, 1)) {
+            this.$tab1.classList.remove('active');
+            this.$tab2.classList.add('active');
+        }
+        return;
+    }
+}
+
+customElements.define('graph-switch-group', GraphSwitchGroup);
 
 class LibrarySwitchGroup extends SwitchGroup {
     postInit() {
@@ -1071,6 +1209,8 @@ export {
     HeartRateValue,
     PowerAvg,
     PowerValue,
+    SmO2Value,
+    THbValue,
     MeasurementUnit,
     ThemeValue,
     MeasurementValue,

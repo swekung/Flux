@@ -112,6 +112,28 @@ class Speed extends Model {
     }
 }
 
+class SmO2 extends Model {
+    postInit(args = {}) {
+        this.min = existance(args.min, 0);
+        this.max = existance(args.max, 100);
+    }
+    defaultValue() { return 0; }
+    defaultIsValid(value) {
+        return inRange(self.min, self.max, value);
+    }
+}
+
+class THb extends Model {
+    postInit(args = {}) {
+        this.min = existance(args.min, 0);
+        this.max = existance(args.max, 400);
+    }
+    defaultValue() { return 0; }
+    defaultIsValid(value) {
+        return inRange(self.min, self.max, value);
+    }
+}
+
 class Sources extends Model {
     postInit(args = {}) {
         const self = this;
@@ -145,6 +167,7 @@ class Sources extends Model {
             control:      'ble:controllable',
             heartRate:    'ble:hrm',
             virtualState: 'power',
+            smo2:         'ble:smo2',
         };
         return sources;
     }
@@ -419,6 +442,23 @@ class Measurement extends Model {
 }
 
 class DataTileSwitch extends Model {
+    postInit(args = {}) {
+        const self = this;
+        const storageModel = {
+            key: self.prop,
+            fallback: self.defaultValue(),
+        };
+        self.storage = new args.storage(storageModel);
+        this.values = [0,1];
+    }
+    defaultValue() { return 0; }
+    defaultIsValid(value) { return this.values.includes(value); }
+    defaultParse(value) {
+        return parseInt(value);
+    }
+}
+
+class GraphSwitch extends Model {
     postInit(args = {}) {
         const self = this;
         const storageModel = {
@@ -998,6 +1038,8 @@ const power = new Power({prop: 'power'});
 const cadence = new Cadence({prop: 'cadence'});
 const heartRate = new HeartRate({prop: 'heartRate'});
 const speed = new Speed({prop: 'speed'});
+const smo2 = new SmO2({prop: 'smo2'});
+const thb = new THb({prop: 'thb'});
 const sources = new Sources({prop: 'sources', storage: LocalStorageItem});
 
 const virtualState = new VirtualState();
@@ -1017,6 +1059,8 @@ const volume = new Volume({prop: 'volume', storage: LocalStorageItem});
 const measurement = new Measurement({prop: 'measurement', storage: LocalStorageItem});
 const dataTileSwitch = new DataTileSwitch({prop: 'dataTileSwitch', storage: LocalStorageItem});
 
+const graphSwitch = new GraphSwitch({prop: 'graphSwitch', storage: LocalStorageItem});
+
 const power1s = new PropInterval({prop: 'db:power', effect: 'power1s', interval: 1000});
 const powerInZone = new PowerInZone({ftpModel: ftp});
 
@@ -1030,6 +1074,8 @@ let models = {
     heartRate,
     cadence,
     speed,
+    smo2,
+    thb,
     sources,
 
     virtualState,
@@ -1055,6 +1101,7 @@ let models = {
     theme,
     measurement,
     dataTileSwitch,
+    graphSwitch,
 
     workout,
     workouts,

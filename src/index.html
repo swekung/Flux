@@ -1,4 +1,4 @@
-<html lang="en">
+<htm  lang="en">
     <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,10 +38,16 @@
 
                         <div class="data-tiles cf">
                             <div class="data-tile--small wide" id="data-tile--power-avg">
-                                <h2 class="data-tile-small--heading">Power Lap</h2>
+                                <!-- <h2 class="data-tile-small--heading">Power Lap</h2>
+                                     <div class="data-tile-small--value-cont">
+                                     <power-lap id=power-avg-value"
+                                     class="data-tile-small--value">--</power-lap>
+                                     </div> -->
+
+                                <h2 class="data-tile-small--heading">SmO2</h2>
                                 <div class="data-tile-small--value-cont">
-                                    <power-lap id=power-avg-value"
-                                               class="data-tile-small--value">--</power-lap>
+                                    <smo2-value id=power-avg-value"
+                                                class="data-tile-small--value">--</smo2-value>
                                 </div>
                             </div>
 
@@ -75,10 +81,16 @@
                                                   class="data-tile-small--value">--</speed-switch>
                             </div>
                             <div class="data-tile--small wide" id="data-tile--slope">
-                                <h2 class="data-tile-small--heading">Slope</h2>
+                                <!-- <h2 class="data-tile-small--heading">Slope</h2>
+                                     <div class="data-tile-small--value-cont">
+                                     <slope-target id=slope-target-value"
+                                     class="data-tile-small--value">--</slope-target>
+                                     </div> -->
+
+                                <h2 class="data-tile-small--heading">THb</h2>
                                 <div class="data-tile-small--value-cont">
-                                    <slope-target id=slope-target-value"
-                                                  class="data-tile-small--value">--</slope-target>
+                                    <thb-value id=slope-target-value"
+                                               class="data-tile-small--value">--</thb-value>
                                 </div>
                             </div>
 
@@ -131,10 +143,27 @@
                             </data-tile-switch-group>
                         </div> <!-- end data-tiles -->
 
-                        <div id="graph-power" class="graph">
-                            <div class="line"></div>
-                            <h4 class="graph--heading">Power</h4>
-                            <instant-power-graph class="graph--cont cf"></instant-power-graph>
+                        <div class="instant-graph--cont">
+                            <div id="graph-power" class="graph">
+                                <div class="line"></div>
+                                <h4 class="graph--heading">Power</h4>
+                                <instant-power-graph class="graph--cont cf"></instant-power-graph>
+                            </div>
+
+                            <div id="graph-moxy" class="graph">
+                                <div class="line"></div>
+                                <h4 class="graph--heading">Moxy</h4>
+                                <moxy-graph class="graph--cont cf"></moxy-graph>
+                            </div>
+
+                            <graph-switch-group class="graph--switch--group">
+                                <div class="data-tile--switch switch-item switch-0 active" index="0">
+                                    <div class="data-tile--switch--icon"></div>
+                                </div>
+                                <div class="data-tile--switch switch-item switch-1" index="1">
+                                    <div class="data-tile--switch--icon"></div>
+                                </div>
+                            </graph-switch-group>
                         </div>
 
                         <div id="graph-workout" class="graph">
@@ -771,6 +800,50 @@
                         </div>
                     </div>
                 </div> <!--end ant hrm settings -->
+
+                <!-- moxy-monitor settings -->
+                <div class="device-card">
+                    <div class="device-card--cont">
+                        <div class="device-card--header">
+                            <div class="device-card--header--label">Moxy</div>
+                        </div>
+                        <div class="device-card--body">
+                            <div class="device-card--body--row">
+                                <connection-switch for="ble:moxy"
+                                                   class="connection-icon-switch"
+                                                   indicatorClass="connection-icon-switch--indicator">
+                                    <svg class="connection-icon-switch--icon icon" xmlns="http://www.w3.org/2000/svg"
+                                        height="24" viewBox="0 0 24 24" width="24">
+                                        <path d="M0 0h24v24H0V0z" fill="none"/>
+                                        <path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/>
+                                    </svg>
+                                    <div class="connection-icon-switch--indicator off"></div>
+                                </connection-switch>
+                                <div class="device-card--tile">
+                                    <h3 class="device-card--tile--header">Name</h3>
+                                    <data-view class="data-view device-card--tile--value"
+                                               prop="ble:moxy:name">--</data-view>
+                                </div>
+                                <div class="device-card--tile">
+                                    <source-switch class="source-switch"
+                                                   for="moxy"
+                                                   use="ble:moxy">
+                                        <h3 class="device-card--tile--header">SmO2</h3>
+                                        <smo2-value class="data-view device-card--tile--value">--</smo2-value>
+                                    </source-switch>
+                                </div>
+                                <div class="device-card--tile">
+                                    <source-switch class="source-switch"
+                                                   for="thb"
+                                                   use="ble:moxy">
+                                        <h3 class="device-card--tile--header">THb</h3>
+                                        <thb-value class="data-view device-card--tile--value">--</thb-value>
+                                    </source-switch>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- end moxy-monitor settings -->
 
                 <div class="sound">
                     <div class="sound--cont">

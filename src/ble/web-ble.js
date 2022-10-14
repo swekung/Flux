@@ -31,6 +31,11 @@ const _speedCadence = {
     optionalServices: [uuids.deviceInformation]
 };
 
+const _moxy = {
+    filters: [{services: [uuids.moxySmO2]}],
+    optionalServices: [uuids.deviceInformation]
+};
+
 const _all = {acceptAllDevices: true};
 
 function filterIn(coll, prop, value) {
@@ -66,6 +71,7 @@ class WebBLE {
         controllable: _controllable,
         speedCadence: _speedCadence,
         power:        _power ,
+        moxy:         _moxy,
         all:          _all
     };
     constructor(args) {}
