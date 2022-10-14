@@ -836,6 +836,7 @@ class MoxyGraph extends HTMLElement {
     onTHb(value) {
         this.thb = value;
         // this.renderTHb(this.thb);
+
     }
     toSmO2(smo2) {
         const self = this;
