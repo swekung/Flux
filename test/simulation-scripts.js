@@ -1,4 +1,4 @@
-import { xf, equals, rand } from './functions.js';
+import { xf, equals, rand, clamp } from './functions.js';
 
 class TrainerMock {
     constructor() {
@@ -153,15 +153,15 @@ class TrainerMock {
     }
 }
 
-const trainerMock = new TrainerMock();
-
 function MoxyMock() {
+    let smo2 = 50.0;
+    let thb = 12.17;
     let interval;
 
     function start() {
-        console.warn('|------------------------|');
-        console.warn('|Trainer Mock Data is ON!|');
-        console.warn('|------------------------|');
+        console.warn('|-----------------------|');
+        console.warn('| Moxy Mock Data is ON! |');
+        console.warn('|-----------------------|');
 
         self.id = 'ble:moxy';
         self.name = 'Moxy Mock';
@@ -171,19 +171,34 @@ function MoxyMock() {
 
         interval = broadcast(sensorData.bind(self));
     }
-    function stop() {
-        console.warn('|-------------------------|');
-        console.warn('|Trainer Mock Data is OFF!|');
-        console.warn('|-------------------------|');
-        clearInterval(self.interval);
-    }
 
-    function run() {
+    function stop() {
+        clearInterval(self.interval);
+
+        console.warn('|------------------------|');
+        console.warn('| Moxy Mock Data is OFF! |');
+        console.warn('|------------------------|');
     }
 
     function broadcast(handler) {
         const interval = setInterval(handler, 1000);
         return interval;
+    }
+
+    function sensorData() {
+        smo2 = nextSmO2(smo2);
+        thb  = nextTHb(thb);
+
+        xf.dispatch('smo2', smo2);
+        xf.dispatch('thb', thb);
+    }
+
+    function nextSmO2(smo2) {
+        return clamp(0, 100, smo2 + rand(-1, 1));
+    }
+
+    function nextTHb(thb) {
+        return clamp(0, 99, thb + (Math.random() * 0.1));
     }
 
     return Object.freeze({
@@ -192,4 +207,10 @@ function MoxyMock() {
     });
 }
 
-export { trainerMock };
+const trainerMock = new TrainerMock();
+const moxyMock = MoxyMock();
+
+export {
+    trainerMock,
+    moxyMock,
+};
