@@ -198,7 +198,7 @@ function MoxyMock() {
     }
 
     function nextTHb(thb) {
-        return clamp(0, 99, thb + (Math.random() * 0.1));
+        return clamp(0, 99, thb + (rand(-1, 1) * 0.01));
     }
 
     return Object.freeze({
