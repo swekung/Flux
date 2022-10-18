@@ -797,7 +797,7 @@ class MoxyGraph extends HTMLElement {
         this.thb = 0;
         this.smo2X = 0;
         this.thbX = 0;
-        this.step = 10;
+        this.step = 2;
         this.colors = {
             smo2: '#22976C',
             thb: '#FC7521',
