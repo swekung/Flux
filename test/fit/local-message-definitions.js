@@ -36,6 +36,11 @@ const localMessageDefinitions = {
             {field: "resistance", number: 10, size: 1, base_type: 2},
             {field: "cycle_length", number: 12, size: 1, base_type: 2},
             {field: "temperature", number: 13, size: 1, base_type: 1},
+
+            // Moxy fields
+            {field: "device_index", number: 62, size: 1, base_type: 2},
+            {field: "total_hemoglobin_conc", number: 54, size: 2, base_type: 132},
+            {field: "saturated_hemoglobin_percent", number: 57, size: 2, base_type: 132},
         ]
     },
     event: {

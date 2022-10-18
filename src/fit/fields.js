@@ -83,12 +83,50 @@ function Altitude() {
     });
 }
 
+function SmO2() {
+    const scale  = 10;
+    const offset = 0;
+
+    function encode(smo2) {
+        return parseInt((smo2 * scale) + (offset * scale));
+    }
+
+    function decode(encoded) {
+        return (encoded - (offset * scale)) / scale;
+    }
+
+    return Object.freeze({
+        encode,
+        decode,
+    });
+}
+
+function THb() {
+    const scale  = 100;
+    const offset = 0;
+
+    function encode(thb) {
+        return parseInt((thb * scale) + (offset * scale));
+    }
+
+    function decode(encoded) {
+        return (encoded - (offset * scale)) / scale;
+    }
+
+    return Object.freeze({
+        encode,
+        decode,
+    });
+}
+
 const fields = {
     timestamp: Timestamp(),
     speed:     Speed(),
     distance:  Distance(),
     grade:     Grade(),
     altitude:  Altitude(),
+    smo2:      SmO2(),
+    thb:       THb(),
 };
 
 export { fields };

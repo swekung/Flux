@@ -1,7 +1,7 @@
 import { xf, exists, equals } from '../functions.js';
 import { models } from './models/models.js';
 import { Sound } from './sound.js';
-// import { trainerMock } from './simulation-scripts.js';
+import { trainerMock, moxyMock } from './simulation-scripts.js';
 
 let db = {
     // Data Screen
@@ -329,6 +329,7 @@ xf.reg('app:start', async function(_, db) {
 
     // TRAINER MOCK
     // trainerMock.init();
+    // moxyMock.start();
 });
 
 function start () {

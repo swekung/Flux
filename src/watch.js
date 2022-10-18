@@ -327,7 +327,12 @@ xf.reg('watch:elapsed', (x, db) => {
         distance:   db.distance,
         grade:      db.slopeTarget,
         altitude:   db.altitude,
+
+        device_index:                 0,
+        saturated_hemoglobin_percent: db.smo2,
+        total_hemoglobin_conc:        db.thb,
     };
+
 
     db.records.push(record);
     db.lap.push(record);

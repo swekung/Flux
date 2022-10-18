@@ -18,8 +18,8 @@ const localMessageDefinitions = {
         type: 'definition',
         message: 'record',
         local_number: 3,
-        length: 6+18+3+3,
-        data_msg_length: 1+14+2+2,
+        length: 6+18+3+3 +3+3+3,
+        data_msg_length: 1+14+2+2 +1+2+2,
         fields: [
             {field: 'timestamp',   number: 253, size: 4, base_type: 134},
             // {field: "position_lat", number: 0, size: 4, base_type: 133},
@@ -32,6 +32,11 @@ const localMessageDefinitions = {
             {field: "grade", number: 9, size: 2, base_type: 131},
             {field: "cadence", number: 4, size: 1, base_type: 2},
             // {field: "resistance", number: 10, size: 1, base_type: 2},
+
+            // Moxy fields
+            {field: "device_index", number: 62, size: 1, base_type: 2},
+            {field: "total_hemoglobin_conc", number: 54, size: 2, base_type: 132},
+            {field: "saturated_hemoglobin_percent", number: 57, size: 2, base_type: 132},
         ]
     },
     event: {

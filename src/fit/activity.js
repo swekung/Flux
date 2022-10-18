@@ -85,6 +85,7 @@ function Record(args = {}) {
     const defaults = {
         heart_rate: 0, power: 0, cadence: 0, speed: 0,
         distance: 0, grade: 0, altitude: 0,
+        device_index: 0, saturated_hemoglobin_percent: 0, total_hemoglobin_conc: 0,
     };
 
     const encoders = {
@@ -93,6 +94,9 @@ function Record(args = {}) {
         speed:     fields.speed.encode,
         altitude:  fields.altitude.encode,
         grade:     fields.grade.encode,
+
+        saturated_hemoglobin_percent: fields.smo2.encode,
+        total_hemoglobin_conc:        fields.thb.encode,
     };
 
     return Data({values: args, definition: lmd.record, encoders, defaults});

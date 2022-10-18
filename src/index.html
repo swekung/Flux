@@ -143,7 +143,7 @@
                             </data-tile-switch-group>
                         </div> <!-- end data-tiles -->
 
-                        <div class="instant-graph--cont">
+                        <div id="instant-graph">
                             <div id="graph-power" class="graph">
                                 <div class="line"></div>
                                 <h4 class="graph--heading">Power</h4>
@@ -153,7 +153,12 @@
                             <div id="graph-moxy" class="graph">
                                 <div class="line"></div>
                                 <h4 class="graph--heading">Moxy</h4>
-                                <moxy-graph class="graph--cont cf"></moxy-graph>
+                                <moxy-graph class="graph--cont cf">
+                                    <svg id="moxy-svg" width="100%" height="100%">
+                                        <polyline id="moxy-path-smo2" points=""/>
+                                        <polyline id="moxy-path-thb" points=""/>
+                                    </svg>
+                                </moxy-graph>
                             </div>
 
                             <graph-switch-group class="graph--switch--group">

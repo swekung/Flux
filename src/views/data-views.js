@@ -1,5 +1,5 @@
 import { xf, exists, existance, validate, equals, isNumber, last, empty, avg, toFixed } from '../functions.js';
-import { formatTime } from '../utils.js';
+import { formatTime, translate } from '../utils.js';
 import { models } from '../models/models.js';
 
 //
@@ -796,9 +796,19 @@ class MoxyGraph extends HTMLElement {
         this.smo2 = 0;
         this.thb = 0;
         this.smo2X = 0;
+        this.thbX = 0;
+        this.step = 10;
+        this.colors = {
+            smo2: '#22976C',
+            thb: '#FC7521',
+        },
+        this.stroke = {
+            width: 2,
+        },
         this.selectors = {
-            // canvas: 'svg',
-            canvas: '#moxy-graph',
+            svg:      '#moxy-svg',
+            pathSmO2: '#moxy-path-smo2',
+            pathTHb:  '#moxy-path-thb',
         };
     }
     connectedCallback() {
@@ -806,60 +816,90 @@ class MoxyGraph extends HTMLElement {
         this.abortController = new AbortController();
         this.signal = { signal: self.abortController.signal };
 
-        // this.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 100 100"></svg>`;
-        this.innerHTML = `<canvas id="moxy-graph"></canvas>`;
-
-        this.$canvas = this.querySelector(this.selectors.canvas);
-        this.ctx = this.$canvas.getContext("2d");
-
+        this.$svg      = this.querySelector(this.selectors.svg);
+        this.$pathSmO2 = this.querySelector(this.selectors.pathSmO2);
+        this.$pathTHb  = this.querySelector(this.selectors.pathTHb);
+        this.width = window.innerWidth;
 
         xf.sub(`${this.smo2Prop}`, this.onSmO2.bind(this), this.signal);
         xf.sub(`${this.thbProp}`, this.onTHb.bind(this), this.signal);
+        window.addEventListener(`resize`, this.onResize.bind(this), this.signal);
     }
     disconnectedCallback() {
         this.abortController.abort();
     }
-    getViewPort() {
-        const rect = this.getBoundingClientRect();
-
-        return {
-            width: rect.width,
-            height: rect.height,
-            left: rect.left,
-            aspectRatio: rect.width / rect.height,
-        };
+    onResize() {
+        this.width = window.innerWidth;
     }
     onSmO2(value) {
         this.smo2 = value;
-        // this.renderSmO2(this.smo2);
+        this.renderSmO2(this.smo2);
     }
     onTHb(value) {
         this.thb = value;
-        // this.renderTHb(this.thb);
-
+        this.renderTHb(this.thb);
     }
-    toSmO2(smo2) {
-        const self = this;
-        this.smo2Xinc = 10;
-        this.smo2X += this.smo2Xinc;
-        const x = this.smo2X;
-        const y = this.viewPort.height * (this.smo2 / 100);
-        console.log({x, y, smo2: self.smo2, h: self.viewPort.height});
-        return `<circle cx="${x}" cy="${y}" r="10" fill="#22976C"/>`;
-    }
-    toTHb(thb) {
-    }
+    // SmO2 range: 0 - 100,   step: 0.1, <30% - blue, 30%-70% - green, >70% red
+    // THb  range: 0 - 40.00, step: 0.01, 8.0 - 15.0
     renderSmO2(smo2) {
-        // this.viewPort = this.getViewPort();
-        this.smo2Count += 1;
-
         const x = this.smo2X;
-        const y = this.smo2Y;
+        const y = 100 - this.smo2;
 
+        let points = this.$pathSmO2.getAttribute('points');
+
+        if(empty(points)) {
+            points += `${x}, ${y}`;
+        } else {
+            points += `, ${x}, ${y}`;
+        }
+
+        let split = points.split(',');
+        if(split.length >= ((this.width * 2) / this.step)) {
+            let xj = 0;
+            split = split.reduce((acc, n, i) => {
+                if(equals(i, 0) || equals(i, 1)) return acc;
+                if(equals(i % 2, 0)) {
+                    n = xj * this.step;
+                    xj += 1;
+                }
+                acc.push(n);
+                return acc;
+            }, []);
+        }
+        points = split.join(',');
+
+        this.$pathSmO2.setAttribute('points', points);
+        this.smo2X += this.step;
     }
     renderTHb(thb) {
-        // this.insertAdjacentHTML('beforeend', this.toTHb(thb));
-        this.thbCount += 1;
+        const x = this.thbX;
+        const y = 100 - translate(thb, 8, 15, 0, 100);
+
+        let points = this.$pathTHb.getAttribute('points');
+
+        if(empty(points)) {
+            points += `${x}, ${y}`;
+        } else {
+            points += `, ${x}, ${y}`;
+        }
+
+        let split = points.split(',');
+        if(split.length >= ((this.width * 2) / this.step)) {
+            let xj = 0;
+            split = split.reduce((acc, n, i) => {
+                if(equals(i, 0) || equals(i, 1)) return acc;
+                if(equals(i % 2, 0)) {
+                    n = xj * this.step;
+                    xj += 1;
+                }
+                acc.push(n);
+                return acc;
+            }, []);
+        }
+        points = split.join(',');
+
+        this.$pathTHb.setAttribute('points', points);
+        this.thbX += this.step;
     }
 }
 
@@ -874,7 +914,18 @@ class SmO2Value extends DataView {
     subs() {
         xf.sub(`${this.prop}`, this.onUpdate.bind(this), this.signal);
     }
+
+    // this.style = 'color: #2A5F97';
+    // this.style = 'color: #278B65';
+    // this.style = 'color: #D72A1C';
     transform(state) {
+        if(state < models.smo2.zones.one) {
+            this.style = 'color: #328AFF';
+        } else if(state < models.smo2.zones.two) {
+            this.style = 'color: #56C057';
+        } else {
+            this.style = 'color: #FE340B';
+        }
         return toFixed(state, 1);
     }
 }

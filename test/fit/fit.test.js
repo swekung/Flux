@@ -257,6 +257,25 @@ describe('encodes File Id definition message', () => {
 
 });
 
+describe('encodes Record definition message with developer fields (Moxy)', () => {
+    let res = fit.definition.encode(lmd.record);
+    //  res = new Uint8Array([64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0]);
+
+    describe('definition messege header (byte 0)', () => {
+        test('is developer header (bit x = ?)', () => {
+            // expect(nthBit(res[0], 7)).toBe(0);
+        });
+    });
+
+    test('number of fields (byte 5)', () => {
+        // expect(res[5]).toBe();
+    });
+
+    test('number of developer fields (byte x)', () => {
+        // expect(res[5]).toBe(5);
+    });
+});
+
 describe('reads File Id data message', () => {
     let uint8Array = new Uint8Array([0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4]);
     let view = new DataView(uint8Array.buffer);

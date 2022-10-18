@@ -116,6 +116,11 @@ class SmO2 extends Model {
     postInit(args = {}) {
         this.min = existance(args.min, 0);
         this.max = existance(args.max, 100);
+        this.zones = {
+            one: 30,
+            two: 70,
+            three: 100,
+        };
     }
     defaultValue() { return 0; }
     defaultIsValid(value) {

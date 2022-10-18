@@ -249,10 +249,12 @@ function Definition(args = {}) {
     }
 
     function encode(definition) {
-        const header         = 64 + definition.local_number;
+        const header = 64 + definition.local_number;
+
         const numberOfFields = definition.fields
-                                         .reduce((acc, x) => acc+=1, 0);
-        const globalNumber   = messageToNumber(definition.message);
+              .reduce((acc, x) => acc+=1, 0);
+
+        const globalNumber = messageToNumber(definition.message);
 
         const length = fixedContentLength + (numberOfFields * fieldLength);
         const buffer = new ArrayBuffer(length);
@@ -271,6 +273,24 @@ function Definition(args = {}) {
             view.setUint8(i+2,field.base_type, true);
             i += fieldLength;
         });
+
+        // TODO:
+        // if developer fields are defined
+        // write # developer fields
+        // write developer fields definitions
+        if('developerFields' in definition) {
+
+            const numberOfDeveloperFields = definition.developerFields.length;
+
+            view.setUint8(i, numberOfDeveloperFields, true);
+
+            definition.developerFields.forEach((field) => {
+                view.setUint8(i,field.number,      true);
+                view.setUint8(i+1,field.size,      true);
+                view.setUint8(i+2,field.base_type, true);
+                i += fieldLength;
+            });
+        }
 
         return new Uint8Array(buffer);
     }
