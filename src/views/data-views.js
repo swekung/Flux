@@ -795,6 +795,8 @@ class MoxyGraph extends HTMLElement {
         this.thbProp = 'db:thb';
         this.smo2 = 0;
         this.thb = 0;
+        this.thbMin = 11;
+        this.thbMax = 12;
         this.smo2X = 0;
         this.thbX = 0;
         this.step = 2;
@@ -837,6 +839,12 @@ class MoxyGraph extends HTMLElement {
     }
     onTHb(value) {
         this.thb = value;
+        if(this.thb < this.thbMin) {
+            this.thbMin = this.thb;
+        }
+        if(this.thb > this.thbMax) {
+            this.thbMax = this.thb;
+        }
         this.renderTHb(this.thb);
     }
     // SmO2 range: 0 - 100,   step: 0.1, <30% - blue, 30%-70% - green, >70% red
@@ -873,7 +881,7 @@ class MoxyGraph extends HTMLElement {
     }
     renderTHb(thb) {
         const x = this.thbX;
-        const y = 100 - translate(thb, 8, 15, 0, 100);
+        const y = 100 - translate(thb, this.thbMin, this.thbMax, 0, 100);
 
         let points = this.$pathTHb.getAttribute('points');
 
