@@ -55,6 +55,10 @@ function isAtomic(x) {
     return isNumber(x) || isString(x);
 }
 
+function isDataView(x) {
+    return x instanceof DataView;
+}
+
 function validate(predicates = [], value, fallback = undefined) {
     if(predicates.reduce((acc, p) => acc && p(value), true)) return value;
     if(exists(fallback)) return fallback;
@@ -109,6 +113,16 @@ function third(xs) {
     return xs[2];
 }
 
+function fourth(xs) {
+    if(!isArray(xs) && !isString(xs) && !isUndefined(xs)) {
+        throw new Error(`fourth takes ordered collection or a string: ${xs}`);
+    }
+    if(isUndefined(xs)) return undefined;
+    if(empty(xs)) return undefined;
+    if(xs.length < 4) return undefined;
+    return xs[3];
+}
+
 function last(xs) {
     if(!isArray(xs) && !isString(xs) && !isUndefined(xs)) {
         throw new Error(`last takes ordered collection or a string: ${xs}`);
@@ -117,6 +131,13 @@ function last(xs) {
     if(empty(xs)) return undefined;
     return xs[xs.length - 1];
 }
+
+// function count(xs) {
+//     if(isArray(xs) || isString(xs)) return xs.length;
+//     if(isObject(xs)) {
+//         return;
+//     }
+// }
 
 function map(coll, fn) {
     if(isArray(coll)) return coll.map(fn);
@@ -587,12 +608,14 @@ export {
     isCollection,
     isNumber,
     isAtomic,
+    isDataView,
     validate,
 
     // collections
     first,
     second,
     third,
+    fourth,
     last,
     empty,
     map,

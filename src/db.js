@@ -316,7 +316,7 @@ xf.reg('app:start', async function(_, db) {
 
     db.sources = models.sources.set(models.sources.restore());
 
-    db.workouts = models.workouts.restore();
+    db.workouts = await models.workouts.restore();
     db.workout = models.workout.restore(db);
 
 

@@ -11,9 +11,9 @@ import { uuid } from '../storage/uuid.js';
 import { workouts as workoutsFile }  from '../workouts/workouts.js';
 import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
+// import { FIT } from '../fit/fit.js';
 import { activity } from '../fit/activity.js';
 import { course } from '../fit/course.js';
-import { fit } from '../fit/fit.js';
 import { Model as Cycling } from '../physics.js';
 
 class Model {
@@ -533,15 +533,48 @@ class Workouts extends Model {
     }
     defaultValue() {
         const self = this;
-        return workoutsFile.map((w) => Object.assign(self.workoutModel.parse(w), {id: uuid()}));
+        return workoutsFile.map((w) =>
+            Object.assign(self.workoutModel.parse(w), {id: uuid()})
+        );
     }
     defaultIsValid(value) {
         const self = this;
         return exists(value);
     }
-    restore() {
+    toWorkout(json) {
+        return 
+    }
+    fetchLocal() {
         const self = this;
         return self.default;
+    }
+    async fetchRemote() {
+        const self = this;
+        const endpoint = "http://localhost:8080/workouts";
+        const responseOption = await fetch(endpoint);
+        if(responseOption) {
+            const jsonOption = await responseOption.json();
+            if(jsonOption) {
+                return jsonOption.map(self.toWorkout);
+            }
+            console.error("Can't get JSON from remote Workouts!");
+            return [];
+        }
+        console.error("Can't fetch remote Workouts!");
+        return [];
+    }
+    async fetchWorkouts() {
+        const self = this;
+        const local = self.fetchLocal();
+        const remote = await self.fetchRemote();
+        return local.concat(remote);
+    }
+    async restore() {
+        const self = this;
+        const res = await self.fetchWorkouts();
+        console.log(res);
+        return res;
+        // return self.default;
     }
     get(workouts, id) {
         for(let workout of workouts) {
