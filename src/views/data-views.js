@@ -795,8 +795,8 @@ class MoxyGraph extends HTMLElement {
         this.thbProp = 'db:thb';
         this.smo2 = 0;
         this.thb = 0;
-        this.thbMin = 11;
-        this.thbMax = 12;
+        this.thbMin = 8;
+        this.thbMax = 15;
         this.smo2X = 0;
         this.thbX = 0;
         this.step = 2;
@@ -838,6 +838,10 @@ class MoxyGraph extends HTMLElement {
         this.renderSmO2(this.smo2);
     }
     onTHb(value) {
+        if(equals(this.thb, 0)) {
+            this.thbMin = value - 1;
+            this.thbMax = value + 1;
+        }
         this.thb = value;
         if(this.thb < this.thbMin) {
             this.thbMin = this.thb;
