@@ -86,13 +86,20 @@ describe('constructs FITjs Message', () => {
         expect(msg).toEqual(res);
     });
 
-    test.skip('Record', () => {
+    test('Record', () => {
         let msg = activity.Record({
             timestamp: 1630508400000,
+            heart_rate: 143,
             power: 180,
             cadence: 80,
             speed: 28.30,
             distance: 4100, // meters
+
+            grade: 0,
+            altitude: 0,
+            device_index: 0,
+            saturated_hemoglobin_percent: 0,
+            total_hemoglobin_conc: 0,
         });
         let res = {
             type: 'data',
@@ -100,7 +107,7 @@ describe('constructs FITjs Message', () => {
             local_number: 3,
             fields: {
                 timestamp: 999442800,
-                heart_rate: 0,
+                heart_rate: 143,
                 power: 180,
                 cadence: 80,
                 speed: 7861,

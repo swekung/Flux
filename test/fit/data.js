@@ -274,8 +274,8 @@ const minimal = [
     // event data message
     2,  19,36,144,57,  0,0,0,0,  0,0,  0, 0, 0,
     // record definition message
-    //                   timestamp,  power, cadence, speed,   hr,   distance
-    67, 0, 0, 20,0, 6,  253,4,134, 7,2,132, 4,1,2, 6,2,132, 3,1,2, 5,4,134,
+    //                  timestamp, power,   cadence, speed,   hr,    distance
+    67, 0, 0, 20,0, 6,  253,4,134, 7,2,132, 4,1,2,   6,2,132, 3,1,2, 5,4,134,
     // record data message
     3, 16,36,144,57, 31,1, 83, 204,34, 150, 103,0,0,0,
     3, 17,36,144,57, 35,1, 85, 199,35, 150, 70,4,0,0,

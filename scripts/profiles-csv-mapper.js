@@ -3,7 +3,7 @@ import {
     isNumber,
     first, second, third, fourth, last, empty
 } from '../src/functions.js';
-import { base_types } from '../src/fit/base-types.js';
+import { base_type } from '../src/fit/base-types.js';
 import fs from 'fs';
 import { parse } from 'csv-parse';
 
@@ -344,7 +344,7 @@ function Mapper() {
     }
 
     function typeToBaseType(types, typeName) {
-        if(typeName in base_types) return typeName;
+        if(typeName in base_type) return typeName;
         if(typeName in types) return types[typeName].base_type;
         return typeName;
     }
@@ -369,8 +369,9 @@ function Mapper() {
         const toFile   = args.toFile ?? '';
         const sections = args.sections ?? ['all'];
 
-        // [{message: String, fields: [{key: String, number: Int}]}]
-        const messages = [];
+        // {message: {fields: {name: number}}}
+        const messages = {};
+        let currentMessageName = '';
         let skip = false;
 
         function onData(row) {
@@ -386,16 +387,12 @@ function Mapper() {
                 return;
             }
             if(record.isMessage(rec)) {
-                messages.push({
-                    message: rec.content.name,
-                    fields: []
-                });
+                currentMessageName = rec.content.name;
+                messages[rec.content.name] = {fields: {}};
             }
             if(record.isField(rec)) {
-                last(messages).fields.push({
-                    key:    rec.content.name,
-                    number: toFieldNumber(rec.content.number)
-                });
+                messages[currentMessageName]
+                    .fields[rec.content.name] = toFieldNumber(rec.content.number);
             }
         }
 

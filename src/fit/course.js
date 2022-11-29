@@ -1,8 +1,8 @@
 import { exists, equals, first, toFixed, } from '../functions.js';
-import { fit } from './fit.js';
-import { fields } from './fields.js';
-import { appTypes } from './profiles.js';
-import { localMessageDefinitions as lmd } from './local-message-definitions.js';
+import { FIT } from './fit.js';
+// import { fields } from './fields.js';
+// import { appTypes } from './profiles.js';
+// import { localMessageDefinitions as lmd } from './local-message-definitions.js';
 import { g } from '../views/graph.js';
 
 
