@@ -260,7 +260,7 @@ describe('IndoorBikeData', () => {
 
             const res = indoorBikeData.decode(view);
             expect(res).toEqual({
-                speed: 280 * 0.01,
+                speed: 280 * indoorBikeData.fields.InstantaneousSpeed.resolution,
                 cadence: 10,
                 power: 6,
             });
@@ -271,7 +271,7 @@ describe('IndoorBikeData', () => {
 
             const res = indoorBikeData.decode(view);
             expect(res).toEqual({
-                speed: 1450 * 0.01,
+                speed: 1450 * indoorBikeData.fields.InstantaneousSpeed.resolution,
                 cadence: 23,
                 power: 24,
                 heartRate: 70,

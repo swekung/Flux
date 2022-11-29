@@ -148,7 +148,7 @@ function readDistance(dataview) {
 
 function readPower(dataview) {
     const flags = dataview.getUint16(0, true);
-    return dataview.getUint16(powerIndex(flags), true);
+    return dataview.getUint16(powerIndex(flags), true); // sint16 getInt16
 }
 
 function readHeartRate(dataview) {
@@ -212,9 +212,12 @@ function IndoorBikeData(dataview) {
     }
 
     function encode() {
+        throw new Error(`Not Yet Implemented!`);
     }
 
     return Object.freeze({
+        flags,
+        fields,
         encode,
         decode,
     });
