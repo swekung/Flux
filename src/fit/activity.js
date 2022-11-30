@@ -40,7 +40,8 @@ async function Activity(args = {}) {
     });
 }
 
-const activity = await Activity();
+const activity = Activity();
+
 // move to fi.js
 // function Field(args = {}) {
 //     const defaults = {
