@@ -15,6 +15,7 @@ import { fileHandler } from '../file.js';
 import { activity } from '../fit/activity.js';
 import { course } from '../fit/course.js';
 import { Model as Cycling } from '../physics.js';
+import { api } from './api.js';
 
 class Model {
     constructor(args = {}) {
@@ -542,7 +543,7 @@ class Workouts extends Model {
         return exists(value);
     }
     toWorkout(json) {
-        return 
+        return json;
     }
     fetchLocal() {
         const self = this;
@@ -550,23 +551,12 @@ class Workouts extends Model {
     }
     async fetchRemote() {
         const self = this;
-        const endpoint = "http://localhost:8080/workouts";
-        const responseOption = await fetch(endpoint);
-        if(responseOption) {
-            const jsonOption = await responseOption.json();
-            if(jsonOption) {
-                return jsonOption.map(self.toWorkout);
-            }
-            console.error("Can't get JSON from remote Workouts!");
-            return [];
-        }
-        console.error("Can't fetch remote Workouts!");
-        return [];
+        return;
     }
     async fetchWorkouts() {
         const self = this;
         const local = self.fetchLocal();
-        const remote = await self.fetchRemote();
+        const remote = await api.getWoD();
         return local.concat(remote);
     }
     async restore() {

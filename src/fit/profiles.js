@@ -8,15 +8,12 @@
 
 import { equals } from '../functions.js';
 import { base_type, base_type_definitions } from './base-types.js';
-// import global_message_definitions from './global-message-definitions.json' assert {type: 'json'};
-// import global_type_definitions from './global-type-definitions.json' assert {type: 'json'};
-// import global_field_definitions from './global-field-definitions.json' assert {type: 'json'};;
+import global_message_definitions from './global-message-definitions.json';
+import global_type_definitions from './global-type-definitions.json';
+import global_field_definitions from './global-field-definitions.json';
 
 
-async function Profiles(args = {}) {
-    const global_message_definitions = await fetch('./fit/global-message-definitions.json');
-    const global_type_definitions = await fetch('./fit/global-type-definitions.json');
-    const global_field_definitions = await fetch('./fit/global-field-definitions.json');
+function Profiles(args = {}) {
 
     // merge product types, messages, and fields with the global ones
 

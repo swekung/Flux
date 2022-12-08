@@ -65,6 +65,17 @@ function validate(predicates = [], value, fallback = undefined) {
     throw new Error(`validate needs a fallback value with `, value);
 }
 
+// TODO: implement Rust style Option/Result
+function unwrap(value) {
+    if(exists(value)) return value;
+    if('caller' in unwrap) {
+        throw new Error(`I need a value here: ${unwrap.caller}`);
+    } else {
+        throw new Error(`I need a value here.`);
+    }
+}
+// end
+
 // Collections
 function empty(x) {
     if(isNull(x)) throw new Error(`empty called with null: ${x}`);
@@ -610,6 +621,7 @@ export {
     isAtomic,
     isDataView,
     validate,
+    unwrap,
 
     // collections
     first,

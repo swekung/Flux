@@ -14,9 +14,9 @@ import { exists, existance, equals, first, second, last, map } from '../function
 import { Profiles } from './profiles.js';
 import { FIT } from './fit.js';
 
-async function Activity(args = {}) {
+function Activity(args = {}) {
 
-    const profiles = await Profiles();
+    const profiles = Profiles();
     const fit      = FIT({profiles});
 
     console.log('-----------------------------------------');
