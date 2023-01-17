@@ -19,6 +19,7 @@
     /* Editor */
 /* Settings Page */
     /* ANT Device Request */
+    /* My Profile */
     /* App Connections */
     /* About */
 /* Media Queries */
@@ -1844,6 +1845,59 @@ div.graph--bar-group {
 .device-request--pair {
 }
 /* END ANT Device Request */
+
+
+
+/* My Profile */
+.auth--form--cont {
+    --auth-form--line-heigth: 2em;
+    max-width: var(--inner-max-width);
+    margin: 0 auto;
+}
+
+.auth--form--row {
+    margin: 0 1em;
+}
+
+.auth--form--input {
+    width: 100%;
+    margin: 0.5em 0em;
+    padding: 0em 0.5em;
+    line-height: var(--auth-form--line-heigth);
+    color: var(--dark);
+    border: 1px solid var(--white-opacity-01);
+    border-radius: 3px;
+}
+
+.auth--form--input.error {
+    color: var(--red);
+    border: 1px solid var(--red);
+}
+
+.auth--form--button {
+    font-size: 1em;
+    height: 3em;
+    line-height: 3em;
+    margin: 0.5em 0em;
+    text-transform: uppercase;
+    width: 100%;
+    color: #fff;
+    letter-spacing: 1px;
+    background-color: var(--chrome);
+    border: 1px solid var(--white-opacity-01);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.auth--tech--info {
+    margin: 0.5em 0em;
+}
+
+.auth--tech--info .a {
+    text-transform: none;
+}
+
+/* end My Profile */
 
 /* App Connections */
 .app-connections {

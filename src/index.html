@@ -899,8 +899,55 @@
                     </div>
                 </div>
 
+                <!-- start my profile -->
+                <div class="my-profile">
+                    <h2 class="page--heading">My Profile</h2>
+
+                    <web-authn>
+                        <form class="auth--form--cont">
+                            <div class="auth--form--row">
+                                <input id="auth-username-input"
+                                       class="auth--form--input"
+                                       name="username"
+                                       type="text"
+                                       value=""
+                                       autocomplete="username localhost"
+                                       placeholder="example_username" />
+                            </div>
+                            <div class="auth--form--row">
+                                <button id="auth-register-btn"
+                                        class="auth--form--button"
+                                        type="button">Register</button>
+                                <button id="auth-authenticate-btn"
+                                        class="auth--form--button"
+                                        type="button">Authenticate</button>
+                            </div>
+                        </form>
+                    </web-authn>
+
+                    <p class="auth--tech--info">Flux uses <a class="a" href="https://webauthn.guide/">Web Authn</a> known also as Passkeys.</p>
+
+                </div>
+                <!-- end my profile -->
+
+                <!-- start app connections -->
                 <div class="app-connections">
                     <h2 class="page--heading">Connections</h2>
+                    <div class="app-connection">
+                        <svg  class="app-connection--icon"
+                              width="64" height="64" viewBox="0 0 64 64">
+                            <path d="M41.03 47.852l-5.572-10.976h-8.172L41.03 64l13.736-27.124h-8.18" fill="#f9b797"/>
+                            <path d="M27.898 21.944l7.564 14.928h11.124L27.898 0 9.234 36.876H20.35" fill="#f05222"/>
+                        </svg>
+                        <div class="app-connection--content">
+                            <h3 class="app-connection--heading">Strava</h3>
+
+                            <auth-service-config>
+                                <a class="app-connection--link a" href=""></a>
+                            </auth-service-config>
+                        </div>
+                    </div>
+
                     <div class="app-connection">
                         <img class="app-connection--icon" alt="GC" src="images/connections/garmin-connect.jpg"/>
                         <div class="app-connection--content">
@@ -910,7 +957,9 @@
                                target="_blank">Garmin Connect Import Page</a>
                         </div>
                     </div>
-                </div> <!-- end connections -->
+
+
+                </div> <!-- end app connections -->
 
                 <div id="about">
                     <h2 class="page--heading">About</h2>

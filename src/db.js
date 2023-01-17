@@ -1,6 +1,7 @@
 import { xf, exists, equals } from './functions.js';
 import { models } from './models/models.js';
 import { Sound } from './sound.js';
+import { strava } from './models/api.js';
 // import { trainerMock, moxyMock } from './simulation-scripts.js';
 
 let db = {
@@ -41,6 +42,8 @@ let db = {
     theme: models.theme.default,
     measurement: models.measurement.default,
     volume: models.volume.default,
+    usernameInput: models.username.default,
+    username: models.username.default,
 
     // UI options
     powerSmoothing: 0,
@@ -240,6 +243,14 @@ xf.reg(`ui:volume-up`, (_, db) => {
     models.volume.backup(db.volume);
 });
 
+xf.reg(`ui:auth:username-input-set`, (x, db) => {
+    db.usernameInput = models.username.set(x);
+});
+
+xf.reg(`auth:username-set`, (x, db) => {
+    db.username = models.username.set(x);
+});
+
 // Workouts
 xf.reg('workout', (workout, db) => {
     db.workout = models.workout.set(workout);
@@ -327,6 +338,8 @@ xf.reg('app:start', async function(_, db) {
     const sound = Sound({volume: db.volume});
     sound.start();
 
+    strava.onRedirect();
+    // strava.authorize();
     // TRAINER MOCK
     // trainerMock.init();
     // moxyMock.start();

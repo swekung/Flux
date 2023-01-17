@@ -15,7 +15,7 @@ import { fileHandler } from '../file.js';
 import { activity } from '../fit/activity.js';
 import { course } from '../fit/course.js';
 import { Model as Cycling } from '../physics.js';
-import { api } from './api.js';
+import { fluxApi as api } from './api.js';
 
 class Model {
     constructor(args = {}) {
@@ -447,6 +447,14 @@ class Measurement extends Model {
     }
 }
 
+class Username extends Model {
+    postInit(args = {}) {}
+    defaultValue() { return ''; }
+    defaultIsValid(value) {
+        return /^[A-Za-z][A-Za-z0-9_]{3,16}$/.test(value);
+    }
+}
+
 class DataTileSwitch extends Model {
     postInit(args = {}) {
         const self = this;
@@ -534,9 +542,7 @@ class Workouts extends Model {
     }
     defaultValue() {
         const self = this;
-        return workoutsFile.map((w) =>
-            Object.assign(self.workoutModel.parse(w), {id: uuid()})
-        );
+        return self.fetchLocal();
     }
     defaultIsValid(value) {
         const self = this;
@@ -547,7 +553,7 @@ class Workouts extends Model {
     }
     fetchLocal() {
         const self = this;
-        return self.default;
+        return workoutsFile;
     }
     async fetchRemote() {
         const self = this;
@@ -557,14 +563,17 @@ class Workouts extends Model {
         const self = this;
         const local = self.fetchLocal();
         const remote = await api.getWoD();
-        return local.concat(remote);
+        return local
+            .concat(remote.filter((w) => !empty(w)))
+            .map(w => Object.assign(self.workoutModel.parse(w), {id: uuid()}));
     }
     async restore() {
         const self = this;
         const res = await self.fetchWorkouts();
         console.log(res);
+        const resCreateActivity = await api.createActivity({activity: "activity"});
+        console.log(resCreateActivity);
         return res;
-        // return self.default;
     }
     get(workouts, id) {
         for(let workout of workouts) {
@@ -1085,6 +1094,8 @@ const weight = new Weight({prop: 'weight', storage: LocalStorageItem});
 const theme = new Theme({prop: 'theme', storage: LocalStorageItem});
 const volume = new Volume({prop: 'volume', storage: LocalStorageItem});
 const measurement = new Measurement({prop: 'measurement', storage: LocalStorageItem});
+const username = new Username({prop: 'username'});
+
 const dataTileSwitch = new DataTileSwitch({prop: 'dataTileSwitch', storage: LocalStorageItem});
 
 const graphSwitch = new GraphSwitch({prop: 'graphSwitch', storage: LocalStorageItem});
@@ -1130,6 +1141,7 @@ let models = {
     measurement,
     dataTileSwitch,
     graphSwitch,
+    username,
 
     workout,
     workouts,

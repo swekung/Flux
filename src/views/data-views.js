@@ -1,6 +1,7 @@
 import { xf, exists, existance, validate, equals, isNumber, last, empty, avg, toFixed } from '../functions.js';
 import { formatTime, translate } from '../utils.js';
 import { models } from '../models/models.js';
+import { strava } from '../models/api.js';
 
 //
 // DataView
@@ -1298,6 +1299,97 @@ class CompatibilityCheck extends HTMLElement {
 
 
 customElements.define('compatibility-check', CompatibilityCheck);
+
+class WebAuthn extends DataView {
+    postInit() {
+        const self = this;
+        self.selectors = {
+            usernameInput: '#auth-username-input',
+            registerBtn: '#auth-register-btn',
+            authenticateBtn: '#auth-authenticate-btn',
+        };
+        self.attempt = 0;
+    }
+    config() {
+        const self = this;
+        self.selectors = {
+            form: 'form',
+            usernameInput: '#auth-username-input',
+            registerBtn: '#auth-register-btn',
+            authenticateBtn: '#auth-authenticate-btn',
+        };
+        self.form = self.querySelector(self.selectors.form);
+        self.usernameInput = self.querySelector('#auth-username-input');
+        self.registerBtn = self.querySelector(self.selectors.registerBtn);
+        self.authenticateBtn = self.querySelector(self.selectors.authenticateBtn);
+
+    }
+    subs() {
+        const self = this;
+        self.usernameInput.addEventListener('input', self.onUsernameChange.bind(self), self.signal);
+        self.registerBtn.addEventListener('pointerup', self.onRegister.bind(self), self.signal);
+        self.authenticateBtn.addEventListener('pointerup', self.onAuthenticate.bind(self), self.signal);
+        // xf.sub(`db:username`, self.onUsername.bind(self), self.signal);
+    }
+    onUsernameChange(e) {
+        const self = this;
+
+        if(self.attempt > 0) {
+            const username = self.usernameInput.value;
+            if(models.username.isValid(username)) {
+                self.renderUsernameValid();
+            } else {
+                self.renderUsernameInvalid();
+            }
+        }
+    }
+    onRegister(e) {
+        const self = this;
+        const username = self.usernameInput.value;
+
+        if(models.username.isValid(username)) {
+            self.renderUsernameValid();
+            xf.dispatch(`ui:auth:username-input-set`, username);
+            xf.dispatch(`ui:auth:register`);
+        } else {
+            self.attempt += 1;
+            self.renderUsernameInvalid();
+        }
+    }
+    onAuthenticate(e) {
+        const self = this;
+    }
+    renderUsernameValid() {
+        const self = this;
+        self.usernameInput.classList.remove('error');
+    }
+    renderUsernameInvalid() {
+        const self = this;
+        self.usernameInput.classList.add('error');
+    }
+}
+
+customElements.define('web-authn', WebAuthn);
+
+class AuthServiceConfig extends DataView {
+    config() {
+        const self = this;
+        self.anchor = self.querySelector('a');
+        self.renderAuthorize();
+    }
+    renderAuthorize() {
+        const self = this;
+        self.anchor.setAttribute('href', strava.authorizeUri());
+        self.anchor.textContent = 'Authorize Strava';
+    }
+    renderDeauthorize() {
+        const self = this;
+        self.anchor.setAttribute('href', strava.deauthorizeUri());
+        self.anchor.textContent = 'De-authorize Strava';
+    }
+}
+
+customElements.define('auth-service-config', AuthServiceConfig);
 
 export {
     DataView,
