@@ -10,4 +10,7 @@
 notes.txt
 env.js
 package-lock.json
-
+.vercel
+.env
+.env.local
+.env.local.js
