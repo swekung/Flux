@@ -1,3 +1,5 @@
+import { equals } from '../functions.js';
+
 function Url(str) {
     let url = undefined;
 
@@ -16,14 +18,25 @@ const BodyType = Object.freeze({
     FormData: 'formData',
 });
 
-function Req() {
-    const type = `[]`;
-    function check() { return true; }
-    function fallback() { return []; }
-    function serialize() { return []; }
+function Req(args = {}) {
+    const defaults = {
+        type: `[]`,
+        bodyType: BodyType.Json,
+    };
+
+    const type      = args.type ?? defaults.type;
+    const bodyType  = args.bodyType ?? defaults.BodyType;
+    const check     = args.check ?? defaultCheck;
+    const fallback  = args.fallback ?? defaultsFallback;
+    const serialize = args.serialize ?? defaultSerialize;
+
+    function defaultCheck() { return true; }
+    function defaultsFallback() { return []; }
+    function defaultSerialize() { return []; }
 
     return Object.freeze({
         type,
+        bodyType,
         check,
         fallback,
         serialize,
@@ -33,13 +46,18 @@ function Req() {
 function Res(args = {}) {
     const defaults = {
         bodyType: BodyType.Json,
+        type: `[]`,
     };
 
-    const type = `[]`;
-    const bodyType = args.bodyType ?? defaults.bodyType;
-    function check() { return true; }
-    function fallback() { return []; }
-    function deserialize(data) { return data; }
+    const type        = args.type ?? defaults.type;
+    const bodyType    = args.bodyType ?? defaults.bodyType;
+    const fallback    = args.fallback ?? defaultFallback;
+    const check       = args.check ?? defaultCheck;
+    const deserialize = args.deserialize ?? defaultDeserialize;
+
+    function defaultCheck() { return true; }
+    function defaultFallback() { return []; }
+    function defaultDeserialize(data) { return data; }
 
     return Object.freeze({
         bodyType,
@@ -50,16 +68,16 @@ function Res(args = {}) {
     });
 }
 
-function TextResponse() {
-    return Res({bodyType: BodyType.Text});
+function TextResponse(args = {}) {
+    return Res(Object.assign(args, {bodyType: BodyType.Text}));
 }
 
-function JsonResponse() {
-    return Res({bodyType: BodyType.Json});
+function JsonResponse(args = {}) {
+    return Res(Object.assign(args, {bodyType: BodyType.Json}));
 }
 
-function FormDataResponse() {
-    return Res({bodyType: BodyType.FormData});
+function FormDataResponse(args) {
+    return Res(Object.assign(args, {bodyType: BodyType.FormData}));
 }
 
 function Endpoint(args = {}) {
@@ -135,6 +153,117 @@ function Endpoint(args = {}) {
     });
 }
 
+
+function Base64url() {
+
+// function decode(s) {
+//     const _U8Afrom = (s) => Uint8Array.from.bind(Uint8Array)(s);
+//     const _atob = (s) => atob(_tidyB64(s));
+//     const _toUint8Array = (s) => _U8Afrom(_atob(s), c => c.charCodeAt(0));
+//     const _TD = typeof TextDecoder === 'function' ? new TextDecoder() : undefined;
+//     const _decode = (s) => {
+//         _TD.decode(_toUint8Array(s));
+//     };
+//     const _tidyB64 = (s) => s.replace(/[^A-Za-z0-9\+\/]/g, '');
+//     const _unURI = (s) => {
+//         _tidyB64(s.replace(/[-_]/g, (x) => x == '-' ? '+' : '/'));
+//     };
+
+//     return _decode(_unURI(s));
+// }
+
+// function encode(s) {
+//     const _mkUriSafe = (s) => s
+//           .replace(/=/g, '')
+//           .replace(/[+\/]/g, (x) => x == '+' ? '-' : '_');
+
+//     const _TE = typeof TextEncoder === 'function' ? new TextEncoder() : undefined;
+
+//     const _fromCC = String.fromCharCode.bind(String);
+//     const _btoa = (s) => btoa(s);
+//     const _encode = (s) => _fromUint8Array(_TE.encode(s));
+
+//     const _fromUint8Array = (u8a) => {
+//         const maxargs = 0x1000;
+//         let strs = [];
+//         for (let i = 0, l = u8a.length; i < l; i += maxargs) {
+//             strs.push(_fromCC.apply(null, u8a.subarray(i, i + maxargs)));
+//         }
+//         return _btoa(strs.join(''));
+
+//         return _mkUriSafe(_encode(s));
+//     };
+// }
+
+    // const _U8Afrom = Uint8Array.from.bind(Uint8Array);
+    // const _atob = (s) => atob(_tidyB64(s));
+
+    function fromUint8Array(u8a) {
+        if(u8a instanceof ArrayBuffer) u8a = new Uint8Array(u8a);
+        const _fromCC = String.fromCharCode.bind(String);
+        const maxargs = 0x1000;
+        let strs = [];
+        for (let i = 0, l = u8a.length; i < l; i += maxargs) {
+            strs.push(_fromCC.apply(null, u8a.subarray(i, i + maxargs)));
+        }
+        return btoa(strs.join(''));
+    }
+
+    function toUint8Array(s) {
+        const _tidyB64 = (s) => s.replace(/[^A-Za-z0-9\+\/]/g, '');
+        return Uint8Array.from(atob(_tidyB64(s)), c => c.charCodeAt(0));
+    }
+
+    function encode(s) {
+        const _mkUriSafe = (s) => s
+            .replace(/=/g, '')
+            .replace(/[+\/]/g, (x) => x == '+' ? '-' : '_');
+
+        const textEncoder = new TextEncoder(); // 'utf-8'
+        const _encode = (s) => Uint8Array.from(fromUint8Array(textEncoder.encode(s)));
+
+        return _mkUriSafe(_encode(s));
+    }
+
+    function decode(s) {
+        const _decode = (s) => {
+            const textDecoder = new TextDecoder(); // 'utf-8'
+            const textEncoder = new TextEncoder(); // 'utf-8'
+
+            return textDecoder.decode(Uint8Array.from(
+                atob(s),
+                c => c.charCodeAt(0)
+            ));
+            // return textDecoder.decode(textEncoder.encode(atob(s)));
+        };
+        const _tidyB64 = (s) => s.replace(/[^A-Za-z0-9\+\/]/g, '');
+        const _unURI = (s) => _tidyB64(s.replace(/[-_]/g, (x) => x == '-' ? '+' : '/'));
+
+        return _decode(_unURI(s));
+    }
+
+    return Object.freeze({
+        encode,
+        decode,
+        toUint8Array,
+        fromUint8Array,
+    });
+}
+
+// var buf = (new Uint8Array([
+//     232, 218, 229, 62, 165, 73, 16, 93, 246, 151, 212, 117, 29, 219, 4, 53, 58, 77, 210, 186, 42, 42, 233, 218, 81, 176, 174, 200, 99, 121, 67, 198,])).buffer;
+// var bufString = fromUint8Array(buf);
+// var base64String = decode(bufString);
+// var stringT = encode(base64String);
+// var bufT = toUint8Array(stringT);
+// console.log(buf);
+// console.log(bufString);
+// console.log(base64String);
+// console.log(stringT);
+// console.log(bufT);
+
+const base64url = Base64url();
+
 export {
     Url,
     BodyType,
@@ -144,5 +273,6 @@ export {
     JsonResponse,
     FormDataResponse,
     Endpoint,
+    base64url,
 }
 
