@@ -2,8 +2,9 @@ import { equals, exists, xf, unwrap } from '../functions.js';
 import { Url, BodyType, Res, Req,
          TextResponse, JsonResponse,
          Endpoint,
-         base64url, } from './common.js';
+         } from './common.js';
 import { models } from './models.js';
+import { base64 } from './base64.js';
 
 // Types
 // register start response
@@ -25,30 +26,6 @@ const Attestation = {
 };
 // end register start response
 // end Types
-
-
-// String -> Base64Url
-function stringToBase64Url(str) {
-    return window.btoa(encodeURIComponent(str));
-}
-
-// Base64Url String -> String
-function base64UrlToString(str) {
-    return encodeURIComponent(window.btoa(str));
-}
-
-// ArrayBuffer -> String
-function bufferToString(arrayBuffer) {
-    const utf8Decoder = new TextDecoder('utf-8');
-    return utf8Decoder.decode(arrayBuffer);
-}
-
-// String -> ArrayBuffer
-function stringToBuffer(str) {
-    const utf8Encoder = new TextEncoder('utf-8');
-    return utf8Encoder.encode(str);
-}
-
 
 
 function RegisterStartRequest() {
@@ -102,9 +79,19 @@ function RegisterStartResponse(args = {}) {
 
     function fallback() { return {}; }
     function deserialize(data) {
+        console.log('original response');
+        console.log(data);
+        console.log(`typeof challenge: ${typeof data.publicKey.challenge}`);
         console.log(data.publicKey.challenge);
-        data.publicKey.challenge = base64url.toUint8Array(data.publicKey.challenge);
-        data.publicKey.user.id = base64url.toUint8Array(data.publicKey.user.id);
+        console.log('end original response');
+
+        data.publicKey.challenge = base64.stringToArray(
+            base64.decode(data.publicKey.challenge, "base64UrlSafe")
+        );
+        data.publicKey.user.id = base64.stringToArray(
+            base64.decode(data.publicKey.user.id, "base64UrlSafe")
+        );
+
         return data;
     }
 
@@ -131,22 +118,33 @@ function RegisterFinishRequest(args = {}) {
 
     function serialize(data) {
         console.log(`-----------------------------`);
-        console.log(`data: `, data);
+        console.log(`request to register_finish raw`, data);
+
+        // let rawId = base64.arrayToString(data.rawId);
+        // console.log(`rawId: Array[]: `, rawId);
+        //     rawId = base64.encode(data.rawId, 'base64UrlSafe');
+        // console.log(`rawId: Base64UrlSafe: `, rawId);
+        let rawId = data.id;
+        let attestationObject = base64.arrayToString(data.response.attestationObject);
+            attestationObject = base64.encode(attestationObject, 'base64UrlSafe');
+
+        console.log(`clientDataJSON: Array[]: `,
+                    new Uint8Array(data.response.clientDataJSON));
+        console.log(`clientDataJSON: utf-8: `,
+                    base64.utf8Decoder(data.response.clientDataJSON));
+        let clientDataJSON = base64.arrayToString(data.response.clientDataJSON);
+        console.log(`clientDataJSON: after base64 encoding: `, clientDataJSON);
 
         const encoded = {
             id: data.id,
-            rawId: base64url.fromUint8Array(data.rawId),
-            response: {
-                attestationObject: base64url.fromUint8Array(
-                    data.response.attestationObject),
-                clientDataJSON: base64url.fromUint8Array(
-                    data.response.clientDataJSON),
-                },
+            rawId,
+            response: { attestationObject, clientDataJSON, },
             type: data.type,
             authenticatorAttachment: data.authenticatorAttachment,
             extensions: data.getClientExtensionResults(),
         };
-        console.log(`encoded: `, encoded);
+
+        console.log(`request to register_finish: serialized: `, encoded);
         const str = JSON.stringify(encoded);
         console.log(`-----------------------------`);
         return str;
@@ -165,7 +163,7 @@ function RegisterFinishResponse(args = {}) {
     }
 
     return Res({
-        bodyType: BodyType.Json,
+        bodyType: BodyType.Text,
         deserialize,
     });
 }
@@ -205,7 +203,7 @@ function WebAuthN(args = {}) {
 
         console.log(`credentials.create(): `, credential);
 
-        var clientDataJson = JSON.parse(bufferToString(credential.response.clientDataJSON));
+        var clientDataJson = JSON.parse(base64.utf8Decoder(credential.response.clientDataJSON));
         console.log(`challenge 2: `, clientDataJson);
         console.log(`challenge 2: `, clientDataJson.challenge);
 
@@ -220,7 +218,6 @@ function WebAuthN(args = {}) {
             url: `${baseUrl}/api/v1/users/register_start`,
             options: {
                 credentials: 'include',
-                // mode: 'cors',
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -240,7 +237,6 @@ function WebAuthN(args = {}) {
             url: `${baseUrl}/api/v1/users/register_finish`,
             options: {
                 credentials: 'include',
-                // mode: 'cors',
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -265,3 +261,4 @@ function WebAuthN(args = {}) {
 }
 
 export { WebAuthN };
+
