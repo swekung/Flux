@@ -38,12 +38,12 @@ describe('Base64', () => {
         });
 
         test('encode Base64 rfc4648 10. Test Vectors', () => {
-            expect(base64.encode("f")).toequal("zg==");
-            expect(base64.encode("fo")).toequal("zm8=");
-            expect(base64.encode("foo")).toequal("zm9v");
-            expect(base64.encode("foob")).toequal("zm9vyg==");
-            expect(base64.encode("fooba")).toequal("zm9vyme=");
-            expect(base64.encode("foobar")).toequal("zm9vymfy");
+            expect(base64.encode("f")).toEqual("Zg==");
+            expect(base64.encode("fo")).toEqual("Zm8=");
+            expect(base64.encode("foo")).toEqual("Zm9v");
+            expect(base64.encode("foob")).toEqual("Zm9vYg==");
+            expect(base64.encode("fooba")).toEqual("Zm9vYmE=");
+            expect(base64.encode("foobar")).toEqual("Zm9vYmFy");
         });
 
         test('partition', () => {
@@ -87,13 +87,57 @@ describe('Base64', () => {
             expect(base64.splitByNBits(base64.concatBits([72,101,121]), 2))
                 .toEqual([1,0,2,0,1,2,1,1,1,3,2,1]);
         });
+
+
+        test('string to typed array', () => {
+
+            expect(Array.from(base64.stringToArray(
+                "XdGmfuxsoj4RdOw8YURiQS3rwQGNfysCDn5MmO0nDXw"
+            ))).toEqual([
+                93, 209, 166, 126, 236, 108, 162, 62, 17, 116, 236, 60, 97, 68, 98,
+                65, 45, 235, 193, 1, 141, 127, 43, 2, 14, 126, 76, 152, 237, 39,
+                13, 124
+            ]);
+
+            expect(Array.from(base64.stringToArray(
+                "zYHK5U46vtmJ58en1_gzywqJJj89AXZwwckI2Q0D-s8"
+            ))).toEqual([
+                205, 129, 202, 229, 78, 58, 190, 217, 137, 231, 199, 167, 215, 248,
+                51, 203, 10, 137, 38, 63, 61, 1, 118, 112, 193, 201, 8, 217, 13, 3,
+                250, 207
+            ]);
+
+            expect(Array.from(base64.stringToArray(
+                "Fa0vbwJrNI-_vD3S3ePx9NrJjzhFHnHDGb1g54eHtfw"
+            ))).toEqual([
+                21, 173, 47, 111, 2, 107, 52, 143, 191, 188, 61, 210, 221, 227, 241,
+                244, 218, 201, 143, 56, 69, 30, 113, 195, 25, 189, 96, 231, 135,
+                135, 181, 252
+            ]);
+
+            expect(Array.from(base64.stringToArray(
+                "cg9-dfv-1nbj7A-XWnNBY35aOtQ8jITBYtxJa_ClZjM"
+            ))).toEqual([
+                114, 15, 126, 117, 251, 254, 214, 118, 227, 236, 15, 151, 90, 115,
+                65, 99, 126, 90, 58, 212, 60, 140, 132, 193, 98, 220, 73, 107, 240,
+                165, 102, 51
+            ]);
+        });
+
+        test('array to string', () => {
+            expect(base64.arrayToString([
+                93, 209, 166, 126, 236, 108, 162, 62, 17, 116, 236, 60, 97, 68, 98,
+                65, 45, 235, 193, 1, 141, 127, 43, 2, 14, 126, 76, 152, 237, 39,
+                13, 124
+                ])).toEqual(
+                    "XdGmfuxsoj4RdOw8YURiQS3rwQGNfysCDn5MmO0nDXw="
+                );
+        });
     });
 });
 
 // - challenge comes from server unpadded
 // - challenge get double base64 encoded in the client
-
-
 
 // Run 1:
 // Server records to session and sends as json:
@@ -136,136 +180,39 @@ describe('Base64', () => {
 
 
 // Run 2:
-// from another run atob breaks when client receives the challenge:
+
+// from another couple of runs:
+// with this challenge it passes
+// challenge: "xHqr7njLwUSzJnDumdCgDm0bqdCEJNORjcSnrylT398"
+
+// with those atob breaks:
 // challenge: "cg9-dfv-1nbj7A-XWnNBY35aOtQ8jITBYtxJa_ClZjM"
+// challenge: "Fa0vbwJrNI-_vD3S3ePx9NrJjzhFHnHDGb1g54eHtfw"
 
+// Those work
+// function fromUrlSafe(s) {
+//     return s
+//         .replace(/[-_]/g, (x) => x == '-' ? '+' : '/')
+//         .replace(/[^A-Za-z0-9\+\/]/g, '');
+// }
 
+// function toUint8Array(s) {
+//     const _atob = (s) => atob(_tidyB64(s));
+//     const _tidyB64 = (s) => s.replace(/[^A-Za-z0-9\+\/]/g, '');
+//     const _unURI = (s) =>
+//           _tidyB64(s.replace(/[-_]/g, (x) => x == '-' ? '+' : '/'));
+//     const _toUint8Array = (s) => Uint8Array.from(_atob(s), c => c.charCodeAt(0));
+//     return _toUint8Array(_unURI(s));
+// }
 
+// function fromUint8Array(u8a) {
+//     if(u8a instanceof ArrayBuffer) u8a = new Uint8Array(u8a);
+//     const _fromCC = String.fromCharCode.bind(String);
+//     const maxargs = 0x1000;
+//     let strs = [];
+//     for (let i = 0, l = u8a.length; i < l; i += maxargs) {
+//         strs.push(_fromCC.apply(null, u8a.subarray(i, i + maxargs)));
+//     }
+//     return btoa(strs.join(''));
+// }
 
-/*
-
-// Raw Data
-// Step 1:
-// Client Sends:
-{username: "zwiftuser"}
-
-// Step 2:
-// server records into session:
-let reg_state = PasskeyRegistration {
-    rs: RegistrationState {
-        policy: Preferred,
-        exclude_credentials: [],
-        challenge: Base64UrlSafeData(
-            [240, 132, 220, 165, 193, 228, 52, 118, 186, 80, 72, 94, 73, 170, 39, 97,
-             128, 144, 21, 92, 139, 106, 252, 204, 27, 116, 51, 219, 72, 152,
-             77, 124,],
-        ),
-        credential_algorithms: [ES256, RS256,],
-        require_resident_key: false,
-        authenticator_attachment: None,
-        extensions: RequestRegistrationExtensions {
-            cred_protect: None,
-            uvm: Some(true,),
-            cred_props: Some(true,),
-            min_pin_length: None,
-            hmac_create_secret: None,
-        },
-        experimental_allow_passkeys: true,
-    },
-}
-
-// Server responds:
-let server_res1 = Json(
-    CreationChallengeResponse {
-        public_key: PublicKeyCredentialCreationOptions {
-            rp: RelyingParty {
-                name: "flux-web",
-                id: "localhost",
-            },
-            user: User {
-                id: Base64UrlSafeData(
-                    [98, 2, 77, 35, 48, 169, 68, 166, 148, 236, 146, 175, 86, 147,
-                     153, 217,],
-                ),
-                name: "zwiftuser",
-                display_name: "zwiftuser",
-            },
-            challenge: Base64UrlSafeData(
-                [240, 132, 220, 165, 193, 228, 52, 118, 186, 80, 72, 94, 73, 170, 39,
-                 97, 128, 144, 21, 92, 139, 106, 252, 204, 27, 116, 51, 219, 72,
-                 152, 77, 124,],
-            ),
-            pub_key_cred_params: [
-                PubKeyCredParams {type_: "public-key", alg: -7,},
-                PubKeyCredParams {type_: "public-key", alg: -257,},
-            ],
-            timeout: Some(60000,),
-            attestation: Some(None,),
-            exclude_credentials: None,
-            authenticator_selection: Some(
-                AuthenticatorSelectionCriteria {
-                    authenticator_attachment: None,
-                    require_resident_key: false,
-                    user_verification: Preferred,
-                },
-            ),
-            extensions: Some(
-                RequestRegistrationExtensions {
-                    cred_protect: None,
-                    uvm: Some(true,),
-                    cred_props: Some(true,),
-                    min_pin_length: None,
-                    hmac_create_secret: None,
-                },
-            ),
-        },
-    },
-);
-
-// Client receives:
-"8ITcpcHkNHa6UEheSaonYYCQFVyLavzMG3Qz20iYTXw"
-"8ITcpcHkNHa6UEheSaonYYCQFVyLavzMG3Qz20iYTXw"
-
-"YgJNIzCpRKaU7JKvVpOZ2Q"
-
-var res1 = {
-    "publicKey": {
-        "rp": {"name": "flux-web", "id": "localhost"},
-        "user": {
-            "id": [89, 103, 74, 78, 73, 122, 67, 112, 82, 75, 97, 85, 55, 74, 75,
-                   118, 86, 112, 79, 90, 50, 81],
-            "name": "zwiftuser",
-            "displayName": "zwiftuser"
-        },
-        "challenge": [
-            56, 73, 84, 99, 112, 99, 72, 107, 78, 72, 97, 54, 85, 69, 104, 101, 83,
-            97, 111, 110, 89, 89, 67, 81, 70, 86, 121, 76, 97, 118, 122, 77, 71, 51,
-            81, 122, 50, 48, 105, 89, 84, 88, 119],
-        "pubKeyCredParams": [
-            {"type": "public-key", "alg": -7}, {"type": "public-key", "alg": -257}
-        ],
-        "timeout": 60000,
-        "attestation": "none",
-        "authenticatorSelection": {
-            "requireResidentKey": false,
-            "userVerification": "preferred"
-        },
-        "extensions": {"uvm": true, "credProps": true}
-    }
-};
-
-
-// Client creates credentials:
-
-// clientDataJSON
-// raw
-
-// decoded
-var clientDataJSON: {
-    "type": "webauthn.create",
-    "challenge": "OElUY3BjSGtOSGE2VUVoZVNhb25ZWUNRRlZ5TGF2ek1HM1F6MjBpWVRYdw",
-    "origin": "http://localhost:1234",
-    "crossOrigin": false
-};
-
-*/
