@@ -982,12 +982,13 @@ class SwitchGroup extends HTMLElement {
         this.abortController.abort();
     }
     eventOwner(e) {
-        const pathLength = e.path.length;
+        const path = e.composedPath();
+        const pathLength = path.length;
 
         for(let i = 0; i < pathLength; i++) {
-            if(exists(e.path[i].hasAttribute) &&
-               e.path[i].hasAttribute('index')) {
-                return e.path[i];
+            if(exists(path[i].hasAttribute) &&
+               path[i].hasAttribute('index')) {
+                return path[i];
             }
         }
 
@@ -1317,12 +1318,13 @@ class WebAuthn extends DataView {
             usernameInput: '#auth-username-input',
             registerBtn: '#auth-register-btn',
             authenticateBtn: '#auth-authenticate-btn',
+            status: '#auth--status',
         };
         self.form = self.querySelector(self.selectors.form);
-        self.usernameInput = self.querySelector('#auth-username-input');
+        self.usernameInput = self.querySelector(self.selectors.usernameInput);
         self.registerBtn = self.querySelector(self.selectors.registerBtn);
         self.authenticateBtn = self.querySelector(self.selectors.authenticateBtn);
-
+        self.authStatus = self.querySelector(self.selectors.status);
     }
     subs() {
         const self = this;
@@ -1330,6 +1332,11 @@ class WebAuthn extends DataView {
         self.registerBtn.addEventListener('pointerup', self.onRegister.bind(self), self.signal);
         self.authenticateBtn.addEventListener('pointerup', self.onAuthenticate.bind(self), self.signal);
         // xf.sub(`db:username`, self.onUsername.bind(self), self.signal);
+
+        xf.sub(`auth:register:success` , self.onRegisterSuccess.bind(self));
+        xf.sub(`auth:register:fail` , self.onRegisterFail.bind(self));
+        xf.sub(`auth:authenticate:success` , self.onAuthenticateSuccess.bind(self));
+        xf.sub(`auth:authenticate:fail` , self.onAuthenticateFail.bind(self));
     }
     onUsernameChange(e) {
         const self = this;
@@ -1358,6 +1365,40 @@ class WebAuthn extends DataView {
     }
     onAuthenticate(e) {
         const self = this;
+        const username = self.usernameInput.value;
+
+        if(models.username.isValid(username)) {
+            self.renderUsernameValid();
+            xf.dispatch(`ui:auth:username-input-set`, username);
+            xf.dispatch(`ui:auth:authenticate`);
+        } else {
+            self.attempt += 1;
+            self.renderUsernameInvalid();
+        }
+    }
+    onRegisterSuccess(e) {
+        const self = this;
+        self.authStatus.classList.remove('error');
+        self.authStatus.classList.add('success');
+        self.authStatus.textContent = `Success! Now you can authenticate ...`;
+    }
+    onRegisterFail(e) {
+        const self = this;
+        self.authStatus.classList.remove('success');
+        self.authStatus.classList.add('error');
+        self.authStatus.textContent = `Something went wrong!`;
+    }
+    onAuthenticateSuccess(e) {
+        const self = this;
+        self.authStatus.classList.remove('error');
+        self.authStatus.classList.add('success');
+        self.authStatus.textContent = `Success! Logged In.`;
+    }
+    onAuthenticateFail(e) {
+        const self = this;
+        self.authStatus.classList.remove('success');
+        self.authStatus.classList.add('error');
+        self.authStatus.textContent = `Something went wrong!`;
     }
     renderUsernameValid() {
         const self = this;

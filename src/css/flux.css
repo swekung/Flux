@@ -1889,6 +1889,20 @@ div.graph--bar-group {
     cursor: pointer;
 }
 
+.auth--status {
+    font-size: 1.2em;
+    color: var(--yellow);
+    line-height: 3em;
+}
+
+.auth--status.success {
+    color: var(--green);
+}
+
+.auth--status.error {
+    color: var(--red);
+}
+
 .auth--tech--info {
     margin: 0.5em 0em;
 }
