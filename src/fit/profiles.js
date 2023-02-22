@@ -7,7 +7,8 @@
 // import json from "./foo.json" assert { type: "json" };
 
 import { equals } from '../functions.js';
-import { base_type, base_type_definitions } from './base-types.js';
+import { BaseType, BaseTypeDefinitions, } from './base-types.js';
+
 import global_message_definitions from './global-message-definitions.json';
 import global_type_definitions from './global-type-definitions.json';
 import global_field_definitions from './global-field-definitions.json';
@@ -16,9 +17,6 @@ import global_field_definitions from './global-field-definitions.json';
 function Profiles(args = {}) {
 
     // merge product types, messages, and fields with the global ones
-
-    // const base_type = base_type;
-    const base_types = base_type_definitions;
     const types = global_type_definitions;
     const messages = global_message_definitions;
     const fields = global_field_definitions;
@@ -29,9 +27,9 @@ function Profiles(args = {}) {
     }
 
     function numberToFieldName(messageName, fieldNumber) {
-        const fields = messages[messageName].fields;
-        for(let fieldName in fields) {
-            if(equals(fields[fieldName], fieldNumber)) return fieldName;
+        const messageFields = messages[messageName].fields;
+        for(let fieldName in messageFields) {
+            if(equals(messageFields[fieldName], fieldNumber)) return fieldName;
         }
         return `field_${fieldNumber}`;
     }
@@ -45,7 +43,7 @@ function Profiles(args = {}) {
     }
 
     function fieldNameToSize(name) {
-        return base_types[fields[name].base_type].size;
+        return BaseTypeDefinitions[fields[name].base_type].size;
     }
 
     function fieldNameToBaseType(name) {
@@ -53,8 +51,8 @@ function Profiles(args = {}) {
     }
 
     return Object.freeze({
-        base_type,
-        base_types,
+        BaseType,
+        BaseTypeDefinitions,
         types,
         messages,
         fields,
@@ -74,7 +72,10 @@ function toDualKeyMap(source, first_key, second_key) {
     }, new Map());
 }
 
+const profiles = Profiles();
+
 export {
     Profiles,
-}
+    profiles,
+};
 

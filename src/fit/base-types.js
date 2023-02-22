@@ -3,7 +3,7 @@
 //
 // as defined in table 1 of the fit protocol profiles.xmls
 //
-const base_type = {
+const BaseType = {
     enum:    0,   // 0x00
     sint8:   1,   // 0x01
     uint8:   2,   // 0x02
@@ -40,28 +40,28 @@ const base_type = {
     '144': 'uint64z',
 };
 
-const base_type_definitions = {
-    'enum':    {name: 'enum',    base_type: base_type.enum,    endian_ability: 0, size: 1, invalid_value: 0xFF},
-    'sint8':   {name: 'sint8',   base_type: base_type.sint8,   endian_ability: 0, size: 1, invalid_value: 0x7F},
-    'uint8':   {name: 'uint8',   base_type: base_type.uint8,   endian_ability: 0, size: 1, invalid_value: 0xFF},
-    'sint16':  {name: 'sint16',  base_type: base_type.sint16,  endian_ability: 1, size: 2, invalid_value: 0x7FFF},
-    'uint16':  {name: 'uint16',  base_type: base_type.uint16,  endian_ability: 1, size: 2, invalid_value: 0xFFFF},
-    'sint32':  {name: 'sint32',  base_type: base_type.sint32,  endian_ability: 1, size: 4, invalid_value: 0x7FFFFFFF},
-    'uint32':  {name: 'uint32',  base_type: base_type.uint32,  endian_ability: 1, size: 4, invalid_value: 0xFFFFFFFF},
-    'string':  {name: 'string',  base_type: base_type.string,  endian_ability: 0, size: 1, invalid_value: 0x00},
-    'float32': {name: 'float32', base_type: base_type.float32, endian_ability: 1, size: 4, invalid_value: 0xFFFFFFFF},
-    'float64': {name: 'float64', base_type: base_type.float64, endian_ability: 1, size: 8, invalid_value: 0xFFFFFFFFFFFFFFFF},
-    'uint8z':  {name: 'uint8z',  base_type: base_type.uint8z,  endian_ability: 0, size: 1, invalid_value: 0x00},
-    'uint16z': {name: 'uint16z', base_type: base_type.uint16z, endian_ability: 1, size: 2, invalid_value: 0x0000},
-    'uint32z': {name: 'uint32z', base_type: base_type.uint32z, endian_ability: 1, size: 4, invalid_value: 0x00000000},
-    'byte':    {name: 'byte',    base_type: base_type.byte,    endian_ability: 0, size: 1, invalid_value: 0xFF},
-    'sint64':  {name: 'sint64',  base_type: base_type.sint64,  endian_ability: 1, size: 8, invalid_value: 0x7FFFFFFFFFFFFFFF},
-    'uint64':  {name: 'uint64',  base_type: base_type.uint64,  endian_ability: 1, size: 8, invalid_value: 0xFFFFFFFFFFFFFFFF},
-    'uint64z': {name: 'uint64z', base_type: base_type.uint64z, endian_ability: 1, size: 8, invalid_value: 0x0000000000000000},
+const BaseTypeDefinitions = {
+    'enum':    {name: 'enum',    base_type: BaseType.enum,    endian_ability: 0, size: 1, invalid_value: 0xFF},
+    'sint8':   {name: 'sint8',   base_type: BaseType.sint8,   endian_ability: 0, size: 1, invalid_value: 0x7F},
+    'uint8':   {name: 'uint8',   base_type: BaseType.uint8,   endian_ability: 0, size: 1, invalid_value: 0xFF},
+    'sint16':  {name: 'sint16',  base_type: BaseType.sint16,  endian_ability: 1, size: 2, invalid_value: 0x7FFF},
+    'uint16':  {name: 'uint16',  base_type: BaseType.uint16,  endian_ability: 1, size: 2, invalid_value: 0xFFFF},
+    'sint32':  {name: 'sint32',  base_type: BaseType.sint32,  endian_ability: 1, size: 4, invalid_value: 0x7FFFFFFF},
+    'uint32':  {name: 'uint32',  base_type: BaseType.uint32,  endian_ability: 1, size: 4, invalid_value: 0xFFFFFFFF},
+    'string':  {name: 'string',  base_type: BaseType.string,  endian_ability: 0, size: 1, invalid_value: 0x00},
+    'float32': {name: 'float32', base_type: BaseType.float32, endian_ability: 1, size: 4, invalid_value: 0xFFFFFFFF},
+    'float64': {name: 'float64', base_type: BaseType.float64, endian_ability: 1, size: 8, invalid_value: 0xFFFFFFFFFFFFFFFF},
+    'uint8z':  {name: 'uint8z',  base_type: BaseType.uint8z,  endian_ability: 0, size: 1, invalid_value: 0x00},
+    'uint16z': {name: 'uint16z', base_type: BaseType.uint16z, endian_ability: 1, size: 2, invalid_value: 0x0000},
+    'uint32z': {name: 'uint32z', base_type: BaseType.uint32z, endian_ability: 1, size: 4, invalid_value: 0x00000000},
+    'byte':    {name: 'byte',    base_type: BaseType.byte,    endian_ability: 0, size: 1, invalid_value: 0xFF},
+    'sint64':  {name: 'sint64',  base_type: BaseType.sint64,  endian_ability: 1, size: 8, invalid_value: 0x7FFFFFFFFFFFFFFF},
+    'uint64':  {name: 'uint64',  base_type: BaseType.uint64,  endian_ability: 1, size: 8, invalid_value: 0xFFFFFFFFFFFFFFFF},
+    'uint64z': {name: 'uint64z', base_type: BaseType.uint64z, endian_ability: 1, size: 8, invalid_value: 0x0000000000000000},
 };
 
 export {
-    base_type,
-    base_type_definitions,
+    BaseType,
+    BaseTypeDefinitions,
 }
 

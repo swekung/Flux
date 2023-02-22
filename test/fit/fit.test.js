@@ -1,4 +1,4 @@
-// import { empty, isObject, nthBit } from '../../src/functions.js';
+import { empty, dataviewToArray, isObject, nthBit } from '../../src/functions.js';
 
 // import { calculateCRC, typeToAccessor } from '../../src/utils.js';
 
@@ -17,39 +17,44 @@ function toUint32(arr) {
     return new DataView(new Uint8Array(arr).buffer).getUint32(0, true);
 }
 
+const fit = FIT();
 
 describe('reads fit file header', () => {
 
-    beforeAll(async () => {
-        const profiles = await Profiles();
-        const fit = FIT({profiles});
-        return fit;
-    });
+    describe('default format header', () => {
+        const headerBuffer = new Uint8Array([14, 32, 92,8,  39,0,0,0,  46,70,73,84,  123,197]).buffer;
+        const view         = new DataView(headerBuffer);
+        const res          = fit.fileHeader.decode(view);
 
-
-    describe('default header', () => {
-        let headerBuffer = new Uint8Array([14, 32, 92,8,  39,0,0,0,  46,70,73,84,  123,197]).buffer;
-        let view         = new DataView(headerBuffer);
-
-        console.log('-----------------------------------------');
-        console.log(fit);
-        console.log(fit.fileHeader);
-        // console.log(fit.fileHeader.decode);
-        console.log('-----------------------------------------');
-
-        let header = fit.fileHeader.decode(view);
-        //  header = {type: 'header', length: 14, protocolVersion: '2.0', profileVersion: '21.40', dataRecordsLength: 39}
-
-        test('reads header', () => {
-            expect(header).toEqual({
-                type: 'header',
-                length: 14,
+        test('decodes header', () => {
+            expect(res).toEqual({
+                _type: 'header',
+                _length: 14,
+                headerSize: 14,
                 protocolVersion: '2.0',
                 profileVersion: '21.40',
-                dataRecordsLength: 39,
-                fileType: '.FIT',
-                crc: 50555}); // getUint16(new Uint8Array([123, 197]))
+                dataSize: 39,
+                dataType: '.FIT',
+                crc: 50555,
+            });
+        });
 
+        test('encodes header', () => {
+            const header = {
+                _type: 'header',
+                _length: 14,
+                headerSize: 14,
+                protocolVersion: '2.0',
+                profileVersion: '21.40',
+                dataSize: 39,
+                dataType: '.FIT',
+                crc: undefined,
+            };
+            const view = new DataView(new Uint8Array(14).buffer);
+            const res = fit.fileHeader.encode(header, view);
+            const expected = [14, 32, 92,8,  39,0,0,0,  46,70,73,84,  123,197];
+
+            expect(dataviewToArray(res)).toEqual(expected);
         });
     });
 
@@ -60,13 +65,15 @@ describe('reads fit file header', () => {
         let header = fit.fileHeader.decode(view);
 
         expect(header).toEqual({
-            type: 'header',
-            length: 12,
+            _type: 'header',
+            _length: 12,
+            headerSize: 12,
             protocolVersion: '1.0',
             profileVersion: '1.00',
-            dataRecordsLength: 161521,
-            fileType: '.FIT',
-            crc: false});
+            dataSize: 161521,
+            dataType: '.FIT',
+            // crc: undefined,
+        });
     });
 
     describe('Zwift (legacy) unfinished header', () => {
@@ -76,200 +83,182 @@ describe('reads fit file header', () => {
         let header = fit.fileHeader.decode(view);
 
         expect(header).toEqual({
-            type: 'header',
-            length: 12,
+            _type: 'header',
+            _length: 12,
+            headerSize: 12,
             protocolVersion: '1.0',
             profileVersion: '1.00',
-            dataRecordsLength: 0,
-            fileType: '.FIT',
-            crc: false});
+            dataSize: 0,
+            dataType: '.FIT',
+            // crc: undefined,
+        });
     });
 });
 
-describe('encodes fit file header', () => {
-    let FITjs = {
-        type: "header",
-        protocolVersion: "1",
-        profileVersion: "1.00",
-        dataRecordsLength: 434544,
-        fileType: ".FIT",
-        length: 12,
-        crc: false,
-    };
-
-    let header = fit.fileHeader.encode({dataRecordsLength: 100});
-    let legacy = fit.fileHeader.encode(FITjs);
-
-    test('default header', () => {
-        expect(Array.from(header)).toStrictEqual([14, 32, 92,8,  100,0,0,0,  46,70,73,84,  63,224]);
+describe('Record Header', () => {
+    test('decode: normal, definition, reserved, 15', () => {
+        const header = fit.recordHeader.decode(0b01001111);
+        expect(header).toEqual({
+            headerType: 'normal',
+            messageType: 'definition',
+            messageTypeSpecific: 'reserved',
+            localMessageType: 15,
+        });
     });
 
-    test('legacy header from FIT js', () => {
-        expect(Array.from(legacy)).toStrictEqual([12, 16, 100,0,  112,161,6,0,  46,70,73,84]);
+    test('decode: normal, definition, developer, 3', () => {
+        const header = fit.recordHeader.decode(0b01100011);
+        expect(header).toEqual({
+            headerType: 'normal',
+            messageType: 'definition',
+            messageTypeSpecific: 'developer',
+            localMessageType: 3,
+        });
+    });
+
+    test('decode: normal, data, reserved, 4', () => {
+        const header = fit.recordHeader.decode(0b00000100);
+        expect(header).toEqual({
+            headerType: 'normal',
+            messageType: 'data',
+            messageTypeSpecific: 'reserved',
+            localMessageType: 4,
+        });
+    });
+
+    test('encode: normal, data, reserved, 4', () => {
+        const res = fit.recordHeader.encode({
+            headerType: 'normal',
+            messageType: 'data',
+            messageTypeSpecific: 'reserved',
+            localMessageType: 4,
+        });
+        expect(res).toEqual(0b00000100);
+    });
+
+    test('encode: decode: normal, definition, developer, 3', () => {
+        const res = fit.recordHeader.encode({
+            headerType: 'normal',
+            messageType: 'definition',
+            messageTypeSpecific: 'developer',
+            localMessageType: 3,
+        });
+        expect(res).toEqual(0b01100011);
     });
 });
 
-// describe('reads message header', () => {
+describe('Definition Record', () => {
+    test('encode', () => {
+        const expected = [64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0];
+        const res = fit.definitionRecord.encode({
+            type: 'definition',
+            name: 'file_id',
+            architecture: 0,
+            local_number: 0,
+            length: 21,
+            data_record_length: 12,
+            fields: [
+                {number: 4, size: 4, base_type: 'uint32'},
+                {number: 1, size: 2, base_type: 'uint16'},
+                {number: 2, size: 2, base_type: 'uint16'},
+                {number: 5, size: 2, base_type: 'uint16'},
+                {number: 0, size: 1, base_type: 'enum'}
+            ]
+        }, new DataView(new Uint8Array(expected.length).buffer));
 
-//     describe('definition header', () => {
-//         let header               = fit.header.read(64); // 0b01000000
-//         let deviceInfoDefinition = fit.header.read(65); // 0b01000001
-//         let lapDefinition        = fit.header.read(68); // 0b01000100
-//         let eventData            = fit.header.read(2);  // 0b00000010
-//         let lapData              = fit.header.read(4);  // 0b00000100
+        expect(dataviewToArray(res)).toEqual(expected);
+    });
 
-//         test('reads type', () => {
-//             expect(header).toEqual({
-//                 type: 'definition',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 0,
-//             });
-//         });
+    test('decode', () => {
+        const view = new DataView(new Uint8Array([64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0]).buffer);
+        const res = fit.definitionRecord.decode(view);
 
-//         test('header of definition', () => {
-//             expect(deviceInfoDefinition).toEqual({
-//                 type: 'definition',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 1,
-//             });
-//         });
-//         test('header of data', () => {
-//             expect(eventData).toEqual({
-//                 type: 'data',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 2,
-//             });
-//             expect(lapData).toEqual({
-//                 type: 'data',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 4,
-//             });
-//         });
+        expect(res).toEqual({
+            type: 'definition',
+            name: 'file_id',
+            architecture: 0,
+            local_number: 0,
+            length: 21,
+            data_record_length: 12,
+            fields: [
+                {number: 4, size: 4, base_type: 'uint32'},
+                {number: 1, size: 2, base_type: 'uint16'},
+                {number: 2, size: 2, base_type: 'uint16'},
+                {number: 5, size: 2, base_type: 'uint16'},
+                {number: 0, size: 1, base_type: 'enum'}
+            ]
+        });
+    });
 
-//     });
+});
 
-//     describe('data header', () => {
-//         let header  = fit.header.read(0); // 0b00000000
-//         let header1 = fit.header.read(1); // 0b00000001
+describe('Data Record', () => {
+    test('encode File Id', () => {
+        const expected = [0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4];
+        const definition = {
+            type: 'data',
+            name: 'file_id',
+            architecture: 0,
+            local_number: 0,
+            length: 21,
+            data_record_length: 12,
+            fields: [
+                {number: 4, size: 4, base_type: 'uint32'},
+                {number: 1, size: 2, base_type: 'uint16'},
+                {number: 2, size: 2, base_type: 'uint16'},
+                {number: 5, size: 2, base_type: 'uint16'},
+                {number: 0, size: 1, base_type: 'enum'}
+            ]
+        };
+        const values = {
+            time_created: 992483978,
+            manufacturer: 260,
+            product:      0,
+            number:       0,
+            type:         4
+        };
+        const view = new DataView(new Uint8Array(expected.length).buffer);
 
-//         test('reads type', () => {
-//             expect(header).toEqual({
-//                 type: 'data',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 0,
-//             });
-//         });
+        const res = fit.dataRecord.encode(definition, values, view);
 
-//         test('reads local message number', () => {
-//             expect(header1).toEqual({
-//                 type: 'data',
-//                 header_type: 'normal',
-//                 developer: false,
-//                 local_number: 1,
-//             });
-//         });
-//     });
-// });
+        expect(dataviewToArray(res)).toEqual(expected);
+    });
 
-// describe('reads File Id definition message', () => {
-//     let buffer = new Uint8Array([64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0]).buffer;
-//     let view = new DataView(buffer);
+    test('decode File Id', () => {
+        const view = new DataView(new Uint8Array([0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4]).buffer);
+        const definition = {
+            type: 'data',
+            name: 'file_id',
+            architecture: 0,
+            local_number: 0,
+            length: 21,
+            data_record_length: 12,
+            fields: [
+                {number: 4, size: 4, base_type: 'uint32'},
+                {number: 1, size: 2, base_type: 'uint16'},
+                {number: 2, size: 2, base_type: 'uint16'},
+                {number: 5, size: 2, base_type: 'uint16'},
+                {number: 0, size: 1, base_type: 'enum'}
+            ]
+        };
+        const expected = {
+            type: 'data',
+            name: 'file_id',
+            local_number: 0,
+            length: 12,
+            fields: {
+                time_created: 992483978,
+                manufacturer: 260,
+                product:      0,
+                number:       0,
+                type:         4
+            },
+        };
+        const res = fit.dataRecord.decode(definition, view);
 
-//     let res = fit.definition.read(view);
-
-//     test('type', () => {
-//         expect(res.type).toBe('definition');
-//     });
-//     test('message', () => {
-//         expect(res.message).toBe('file_id');
-//     });
-//     test('local message number', () => {
-//         expect(res.local_number).toBe(0);
-//     });
-
-//     test('field time created', () => {
-//         expect(res.fields[0]).toEqual({field: 'time_created', number: 4, size: 4, base_type: 134});
-//     });
-//     test('field manufacturer', () => {
-//         expect(res.fields[1]).toEqual({field: 'manufacturer', number: 1, size: 2, base_type: 132});
-//     });
-//     test('field product', () => {
-//         expect(res.fields[2]).toEqual({field: 'product', number: 2, size: 2, base_type: 132});
-//     });
-//     test('field number', () => {
-//         expect(res.fields[3]).toEqual({field: 'number', number: 5, size: 2, base_type: 132});
-//     });
-//     test('field type', () => {
-//         expect(res.fields[4]).toEqual({field: 'type', number: 0, size: 1, base_type: 0});
-//     });
-
-//     test('reads File id', () => {
-//         expect(res).toEqual({
-//             type: 'definition',
-//             message: 'file_id',
-//             architecture: 0,
-//             local_number: 0,
-//             length: 21,
-//             data_msg_length: 12,
-//             fields: [
-//                 {field: 'time_created', number: 4, size: 4, base_type: 134},
-//                 {field: 'manufacturer', number: 1, size: 2, base_type: 132},
-//                 {field: 'product',      number: 2, size: 2, base_type: 132},
-//                 {field: 'number',       number: 5, size: 2, base_type: 132},
-//                 {field: 'type',         number: 0, size: 1, base_type: 0}
-//             ]
-//         });
-//     });
-
-// });
-
-// describe('encodes File Id definition message', () => {
-//     let res = fit.definition.encode(lmd.fileId);
-//     //  res = new Uint8Array([64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0]);
-
-//     describe('definition messege header (byte 0)', () => {
-//         test('is normal header (bit 7 = 0)', () => {
-//             expect(nthBit(res[0], 7)).toBe(0);
-//         });
-//         test('is definition message header (bit 6 = 1)', () => {
-//             expect(nthBit(res[0], 6)).toBe(1);
-//         });
-//         test('local message number is 0 (bit 0-3 = 0)', () => {
-//             expect(res[0] & 0b00001111).toBe(0);
-//         });
-//     });
-
-//     test('reserved byte (byte 1)', () => {
-//         expect(res[1]).toBe(0);
-//     });
-//     test('architecture 0 (byte 2)', () => {
-//         expect(res[2]).toBe(0);
-//     });
-//     test('global message number (byte 3-5)', () => {
-//         expect(toUint16(res.slice(3, 5))).toBe(0);
-//     });
-//     test('number of fields (byte 5)', () => {
-//         expect(res[5]).toBe(5);
-//     });
-
-//     describe('field time created (byte 6-8)', () => {
-//         test('field definition number (byte 6)', () => {
-//             expect(res[6]).toBe(4);
-//         });
-//         test('field size (byte 7)', () => {
-//             expect(res[7]).toBe(4);
-//         });
-//         test('field base type (byte 8)', () => {
-//             expect(res[8]).toBe(134);
-//         });
-//     });
-
-// });
+        expect(res).toEqual(expected);
+    });
+});
 
 // describe('encodes Record definition message with developer fields (Moxy)', () => {
 //     let res = fit.definition.encode(lmd.record);
@@ -287,113 +276,6 @@ describe('encodes fit file header', () => {
 
 //     test('number of developer fields (byte x)', () => {
 //         // expect(res[5]).toBe(5);
-//     });
-// });
-
-// describe('reads File Id data message', () => {
-//     let uint8Array = new Uint8Array([0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4]);
-//     let view = new DataView(uint8Array.buffer);
-
-//     let res = fit.data.read(lmd.fileId, view);
-//     //  res = {
-//     //     type: 'data',
-//     //     message: 'file_id',
-//     //     local_number: 0,
-//     //     fields: {
-//     //         time_created: 992483978,
-//     //         manufacturer: 260,
-//     //         product:      0,
-//     //         number:       0,
-//     //         type:         4
-//     //     }
-//     // };
-
-//     describe('data messege result object', () => {
-//         test('type', () => {
-//             expect(res.type).toBe('data');
-//         });
-//         test('message', () => {
-//             expect(res.message).toBe('file_id');
-//         });
-//         test('local number', () => {
-//             expect(res.local_number).toBe(0);
-//         });
-//         test('field time created', () => {
-//             expect(res.fields.time_created).toBe(992483978);
-//         });
-//         test('field manufacturer', () => {
-//             expect(res.fields.manufacturer).toBe(260);
-//         });
-//         test('field product', () => {
-//             expect(res.fields.product).toBe(0);
-//         });
-//         test('field number', () => {
-//             expect(res.fields.number).toBe(0);
-//         });
-//         test('field type', () => {
-//             expect(res.fields.type).toBe(4);
-//         });
-//     });
-// });
-
-// describe('encodes File Id data message', () => {
-//     const values = {
-//         time_created: 992483978,
-//         manufacturer: 260,
-//         product:      0,
-//         number:       0,
-//         type:         4
-//     };
-
-//     let FITjs = {
-//         type: "data",
-//         message: "file_id",
-//         local_number: 0,
-//         fields: {
-//             manufacturer: 260, number: 0, product: 0, serial_number: 0, time_created: 992483978, type: 4,
-//         }
-//     };
-
-//     let res = fit.data.encode(lmd.fileId, values);
-//     //  res = new Uint8Array([0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4]);
-
-//     describe('data messege header (byte 0)', () => {
-//         test('is normal header (bit 7 = 0)', () => {
-//             expect(nthBit(res[0], 7)).toBe(0);
-//         });
-//         test('is data message header (bit 6 = 0)', () => {
-//             expect(nthBit(res[0], 6)).toBe(0);
-//         });
-//         test('local message number is 0 (bit 0-3 = 0)', () => {
-//             expect(res[0] & 0b00001111).toBe(0);
-//         });
-//     });
-
-//     describe('data record content', () => {
-//         test('time created (byte 1-4)', () => {
-//             expect(toUint32(res.slice(1,5))).toBe(values.time_created);
-//         });
-//         test('manufacturer (byte 5-6)', () => {
-//             expect(toUint16(res.slice(5,7))).toBe(values.manufacturer);
-//         });
-//         test('product (byte 7-8)', () => {
-//             expect(toUint16(res.slice(7,9))).toBe(values.product);
-//         });
-//         test('number (byte 9-10)', () => {
-//             expect(toUint16(res.slice(9,11))).toBe(values.number);
-//         });
-//         test('type (byte 11)', () => {
-//             expect(res[11]).toBe(values.type);
-//         });
-//     });
-
-//     test('correct length', () => {
-//         expect(res.byteLength).toBe(12);
-//     });
-
-//     test('from FIT js', () => {
-//         let res = fit.data.encode(lmd.fileId, FITjs.fields);
-//         expect(Array.from(res)).toStrictEqual([0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4]);
 //     });
 // });
 
@@ -803,3 +685,53 @@ describe('encodes fit file header', () => {
 //     });
 // });
 
+
+// function mock() {
+//     const minimal = [
+//         // 07/Aug/2020
+//         // header
+//         12,  16,  100,0,  112,1,0,0,  46,70,73,84,
+//         // file id definition message
+//         64, 0, 0, 0,0, 5,  4,4,134,  1,2,132,  2,2,132,  5,2,132,  0,1,0,
+//         // file id data message
+//         0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4,
+//         // device info definition message
+//         // ...
+//         // device info data message
+//         // ...
+//         // event definition message
+//         66, 0, 0, 21,0, 6,  253,4,134, 3,4,134, 2,2,132, 0,1,0, 1,1,0, 4,1,2,
+//         // event data message
+//         2,  19,36,144,57,  0,0,0,0,  0,0,  0, 0, 0,
+//         // record definition message
+//         //                   timestamp,  power, cadence, speed,   hr,   distance
+//         67, 0, 0, 20,0, 6,  253,4,134, 7,2,132, 4,1,2, 6,2,132, 3,1,2, 5,4,134,
+//         // record data message
+//         3, 16,36,144,57, 31,1, 83, 204,34, 150, 103,0,0,0,
+//         3, 17,36,144,57, 35,1, 85, 199,35, 150, 70,4,0,0,
+//         3, 18,36,144,57, 34,1, 86, 163,36, 150, 222,7,0,0,
+//         3, 19,36,144,57, 44,1, 86, 117,37, 150, 125,11,0,0,
+//         // event data message
+//         2,  19,36,144,57,  0,0,0,0,  0,0,  0, 4, 0,
+//         // lap definition message
+//         68, 0, 0, 19,0, 9,  253,4,134, 2,4,134, 7,4,134, 8,4,134, 254,2,132, 0,1,0, 1,1,0, 26,1,2, 24,1,2,
+//         // lap
+//         4,  19,36,144,57,  16,36,144,57,  3,0,0,0,  3,0,0,0,  0,0, 9, 1, 0, 0,
+//         // session definition message
+//         69, 0, 0, 18,0, 18,  253,4,134, 2,4,134, 7,4,134, 8,4,134, 254,2,132, 25,2,132, 26,2,132,
+//         5,1,0, 6,1,0, 20,2,132, 21,2,132, 18,1,2, 19,1,2, 14,2,132, 15,2,132, 16,1,2, 17,1,2, 9,4,134,
+//         // session data message
+//         5,  19,36,144,57,  16,36,144,57,  3,0,0,0,  3,0,0,0,
+//         0,0,  0,0,  1,0,  2,  58,
+//         36,1,  44,1,  85, 86,  42,36,  117,37,  150, 150,  125,11,0,0,
+//         // activity definition message
+//         70, 0, 0, 34,0, 7,  253,4,134, 5,4,134, 1,2,132, 2,1,0, 3,1,0, 4,1,0, 6,1,2,
+//         // activity data message
+//         6,  19,36,144,57,  19,36,144,57,  1,0,  0,  26,  1,  0,
+//         // crc
+//         // 112, 130
+//         226, 68
+//     ];
+//     const activity = new Uint8Array(minimal);
+//     return new Blob([activity], {type: 'application/octet-stream'});
+// }

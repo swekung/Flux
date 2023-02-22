@@ -286,6 +286,130 @@ function curry2(fn) {
         }
     };
 }
+const nth = curry2(function(offset, xs) {
+    let i = (offset < 0) ? (xs.length + offset) : (offset);
+    if(isString(xs)) {
+        return xs.charAt(i);
+    }
+    return xs[i];
+});
+
+const prop = curry2(function(p, x) {
+    if(!exists(x)) return;
+    return Number.isInteger(p) ? nth(p, x) : x[p];
+});
+
+const f = {
+    '_': {'@@functional/placeholder': true},
+    'q': function(value) { return function() {return value;}; },
+    'I': (x) => x,
+    'true': (x) => true,
+    'false': (x) => false,
+    'equals': curry2(equals),
+};
+
+function unwrapEval(x) {
+    if(isFunction(x)) {
+        return unwrapEval(x());
+    }
+    return x;
+}
+
+function cond(paths = []) {
+    return function(args) {
+        for(let i = 0; i < paths.length-1; i++) {
+            if(paths[i][0](args)) {
+                return unwrapEval(paths[i][1]);
+            }
+        }
+        return unwrapEval(paths[paths.length-1][1]);
+    };
+}
+
+function expect(x, msg = '') {
+    const err = (msg) => { throw msg; };
+    return exists(x) ? x : err(msg);
+}
+class Maybe {
+    get isNone() {
+        return this._value === null || this._value === undefined;
+    }
+    get isSome() {
+        return !this.isNone;
+    }
+
+    constructor(x) {
+        this._value = x;
+    }
+
+    static of(x) {
+        return new Maybe(x);
+    }
+    map(fn) {
+        return this.isNone ? this : Maybe.of(fn(this._value));
+    }
+    ap(f) {
+        return this.isNone ? this : f.map(this._value);
+    }
+    chain(fn) {
+        return this.map(fn).join();
+    }
+    join() {
+        return this.isNone ? this : this._value;
+    }
+    sequence(of) {
+        return this.traverse(of, f.I);
+    }
+    traverse(of, fn) {
+        return this.isNone ? of(this) : fn(this._value).map(Maybe.of);
+    }
+    orElse(fallback) {
+        if (this.isNone) {
+            return Maybe.of(fallback);
+        }
+        return this;
+    }
+    expect(msg) {
+        if (this.isNone) {
+            throw msg;
+            return Maybe.of(null);
+        }
+        return this;
+    }
+}
+
+function Spec(args = {}) {
+    const definitions = expect(args.definitions);
+
+    const applyResolution = curry2((prop, value) => {
+        return value / definitions[prop].resolution;
+    });
+
+    const removeResolution = curry2((prop, value) => {
+        return value * definitions[prop].resolution;
+    });
+
+    function encodeField(prop, input, transform = applyResolution(prop)) {
+        const fallback = definitions[prop].default;
+        const min      = applyResolution(definitions[prop].min);
+        const max      = applyResolution(definitions[prop].max);
+        const value    = input ?? fallback;
+
+        return Math.floor(clamp(min, max, transform(value)));
+    }
+
+    function decodeField(prop, input, transform = removeResolution) {
+        return transform(prop, input);
+    }
+
+    return {
+        definitions,
+        applyResolution,
+        removeResolution,
+        encodeField,
+        decodeField,
+    };
+}
 
 //
 // Copied from lodash.js
@@ -581,6 +705,10 @@ function nthBitToBool(field, bit) {
     return toBool(nthBit(field, bit));
 }
 
+function setBit(i, n) {
+    return n |= (1 << i);
+}
+
 function xor(view, start = 0, end = view.byteLength) {
     let cs = 0;
     const length = (end < 0) ? (view.byteLength + end) : end;
@@ -648,6 +776,13 @@ export {
     pipe,
     repeat,
     curry2,
+    nth,
+    prop,
+    f,
+    cond,
+    expect,
+    Maybe,
+
     debounce,
 
     // async
@@ -667,6 +802,7 @@ export {
     // bits
     nthBit,
     nthBitToBool,
+    setBit,
     xor,
     setUint24LE,
     getUint24LE,
