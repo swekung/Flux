@@ -261,7 +261,7 @@ describe('Data Record', () => {
 
     test('encode Record', () => {
         const expected = [
-            0b0000100, // header
+            0b0000011, // header
             138, 26, 40, 59, // timestamp
             95, 0, 88, 248, // position_lat
             25, 50, 239, 117, // position_long
@@ -274,11 +274,13 @@ describe('Data Record', () => {
             140, 0, // grade 140
             0, // device_index
         ];
+
+        // JS Object rep of definition record as decoded from .FIT binary
         const definition = {
             type: 'definition',
             name: 'record',
             architecture: 0,
-            local_number: 4,
+            local_number: 3,
             length: 21,
             data_record_length: 12,
             fields: [
@@ -295,6 +297,8 @@ describe('Data Record', () => {
                 {number:  62, size: 1, base_type: 'uint8'}, // device_index
             ]
         };
+
+        // JS Object rep of data record as decoded from .FIT binary
         const values = {
             timestamp: 992483978,
             position_lat: -128450465, // sint32, semicircles
@@ -308,6 +312,14 @@ describe('Data Record', () => {
             grade: 1.4, // sint16, scale 100, %
             device_index: 0, // uint8
         };
+        const dataRecordJS = {
+            type: 'data',
+            name: 'record',
+            local_number: 3,
+            length: 12,
+            fields: values,
+        };
+
         const view = new DataView(new Uint8Array(expected.length).buffer);
 
         const res = fit.dataRecord.encode(definition, values, view);
@@ -316,8 +328,9 @@ describe('Data Record', () => {
     });
 
     test('decode Record', () => {
+        // .FIT binary data record for record message
         const view = new DataView(new Uint8Array([
-            0b0000100, // header
+            0b0000011, // header
             138, 26, 40, 59, // timestamp
             95, 0, 88, 248, // position_lat
             25, 50, 239, 117, // position_long
@@ -330,11 +343,13 @@ describe('Data Record', () => {
             140, 0, // grade 140
             0, // device_index
         ]).buffer);
-        const definition = {
+
+        // JS Object rep of definition record as decoded from .FIT binary
+        const definitionRecordJS = {
             type: 'definition',
             name: 'record',
             architecture: 0,
-            local_number: 4,
+            local_number: 3,
             length: 21,
             data_record_length: 12,
             fields: [
@@ -351,10 +366,12 @@ describe('Data Record', () => {
                 {number:  62, size: 1, base_type: 'uint8'}, // device_index
             ]
         };
-        const expected = {
+
+        // JS Object rep of data record as decoded from .FIT binary
+        const dataRecordJS = {
             type: 'data',
             name: 'record',
-            local_number: 4,
+            local_number: 3,
             length: 12,
             fields: {
                 timestamp: 992483978,
@@ -371,9 +388,59 @@ describe('Data Record', () => {
             }
         };
 
-        const res = fit.dataRecord.decode(definition, view);
+        const res = fit.dataRecord.decode(definitionRecordJS, view);
 
-        expect(res).toEqual(expected);
+        expect(res).toEqual(dataRecordJS);
+    });
+});
+
+describe('DefinitionRecordJS', () => {
+    test('encode', () => {
+        const productMessageDefinitions = [
+            ['file_id', [], 0],
+            ['device_info', [], 1],
+            ['event', [], 2],
+            ['record', [
+                'timestamp',
+                'position_lat',
+                'position_long',
+                'altitude',
+                'heart_rate',
+                'cadence',
+                'distance',
+                'speed',
+                'power',
+                'grade',
+                'device_index',
+            ], 3],
+        ];
+
+        const definitionRecordJS = {
+            type: 'definition',
+            name: 'record',
+            architecture: 0,
+            local_number: 3,
+            length: 39,
+            data_record_length: 27,
+            fields: [
+                {number: 253, size: 4, base_type: 'uint32'}, // timestamp
+                {number:   0, size: 4, base_type: 'sint32'}, // position_lat
+                {number:   1, size: 4, base_type: 'sint32'}, // position_long
+                {number:   2, size: 2, base_type: 'uint16'}, // altitude
+                {number:   3, size: 1, base_type: 'uint8'}, // heart_rate
+                {number:   4, size: 1, base_type: 'uint8'}, // cadence
+                {number:   5, size: 4, base_type: 'uint32'}, // distance
+                {number:   6, size: 2, base_type: 'uint16'}, // speed
+                {number:   7, size: 2, base_type: 'uint16'}, // power
+                {number:   9, size: 2, base_type: 'sint16'}, // grade
+                {number:  62, size: 1, base_type: 'uint8'}, // device_index
+            ]
+        };
+
+        const res = fit.definitionRecord.toFITjs(productMessageDefinitions[3]);
+        console.log(res);
+
+        expect(res).toEqual(definitionRecordJS);
     });
 });
 

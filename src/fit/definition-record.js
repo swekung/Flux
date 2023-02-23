@@ -1,4 +1,4 @@
-import { equals, first, second, third, nthBit, f, expect } from '../functions.js';
+import { equals, first, second, third, nth, nthBit, f, expect } from '../functions.js';
 import { BaseType, BaseTypeDefinitions, } from './base-types.js';
 
 import {
@@ -55,47 +55,6 @@ function DefinitionRecord(args = {}) {
         return 0;
     }
 
-    // ['message_name', ['field_name'], Int]
-    // ->
-    // {
-    //     type: RecordType
-    //     architecture: Int,
-    //     name: String,
-    //     local_number: Int,
-    //     length: Int,
-    //     data_msg_length: Int,
-    //     fields: [{number: Int, size: Int, base_type: base_type}]
-    // }
-    function productToFITjs(args = []) {
-        const messageName    = first(args);
-        const fieldNames     = second(args);
-        const local_number   = third(args);
-        const numberOfFields = fieldNames.length;
-
-        const length = fixedContentLength + (numberOfFields * fieldLength);
-        const fields = {};
-
-        fieldNames.reduce(function(acc, fieldName) {
-            const number    = profiles.fieldNameToNumber(messageName, fieldName);
-            const size      = profiles.fieldNameToSize(fieldName);
-            const base_type = profiles.fieldNameToBaseType(fieldName);
-            acc[fieldName] = {number, size, base_type};
-            return acc;
-        }, fields);
-
-        const data_msg_length = fields.reduce((acc, x) => acc + x.size, 1);
-
-        return {
-            type: _type,
-            architecture,
-            name: messageName,
-            local_number,
-            length,
-            data_msg_length,
-            fields,
-        };
-    }
-
     // {headerType: String, messageType: String, messageTypeSpecific: String, localMessageType: Int}
 
     // {name: String, local_number: Int, fields: [
@@ -103,7 +62,6 @@ function DefinitionRecord(args = {}) {
     // ]}
     // -> DataView
     function encode(definition, view, i = 0) {
-        console.log(_type);
         const header = recordHeader.encode({
             messageType:      _type,
             localMessageType: definition.local_number,
@@ -195,12 +153,50 @@ function DefinitionRecord(args = {}) {
         };
     }
 
+    // ['message_name', ['field_name'], Int]
+    // ->
+    // {
+    //     type: RecordType
+    //     architecture: Int,
+    //     name: String,
+    //     local_number: Int,
+    //     length: Int,
+    //     data_record_length: Int,
+    //     fields: [{number: Int, size: Int, base_type: base_type}]
+    // }
+    function toFITjs(productMessageDefinition = ['', []]) {
+        const messageName    = nth(0, productMessageDefinition);
+        const fieldNames     = nth(1, productMessageDefinition);
+        const local_number   = nth(2, productMessageDefinition);
+        const numberOfFields = fieldNames.length;
+        const length         = fixedContentLength + (numberOfFields * fieldLength);
+
+        return fieldNames.reduce(function(acc, fieldName) {
+            const number    = profiles.fieldNameToNumber(messageName, fieldName);
+            const size      = profiles.fieldNameToSize(fieldName);
+            const base_type = profiles.fieldNameToBaseType(fieldName);
+
+            acc.data_record_length += size;
+            acc.fields.push({number, size, base_type});
+
+            return acc;
+        }, {
+            type: _type,
+            architecture,
+            name: messageName,
+            local_number,
+            length,
+            data_record_length: 0,
+            fields: [],
+        });
+    }
+
     return Object.freeze({
         getDefinitionRecordLength,
         getDataRecordLength,
-        productToFITjs,
         encode,
         decode,
+        toFITjs,
     });
 }
 

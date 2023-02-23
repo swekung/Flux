@@ -11,7 +11,7 @@ const product_message_definitions = [
         'product',
         'number',
         'type',
-    ]],
+    ], 0],
     ['field_description', [
         'developer_data_index',
         'field_definition_number',
@@ -23,7 +23,13 @@ const product_message_definitions = [
         'fit_base_unit_id',
         'native_mesg_num',
         'native_field_num',
-    ]],
+    ], 1],
+    ['event', [
+        'timestamp',
+        'event',
+        'event_type',
+        'event_group',
+    ], 2],
     ['record', [
         'timestamp',
         'position_lat',
@@ -36,16 +42,9 @@ const product_message_definitions = [
         'grade',
         'cadence',
         'device_index',
-        // 'compressed_speed_distance',
         // 'total_hemoglobin_conc',
         // 'saturated_hemoglobin_percent',
-    ]],
-    ['event', [
-        'timestamp',
-        'event',
-        'event_type',
-        'event_group',
-    ]],
+    ], 3],
     ['lap', [
         'timestamp',
         'start_time',
@@ -54,7 +53,7 @@ const product_message_definitions = [
         'message_index',
         'event',
         'event_type',
-    ]],
+    ], 4],
     ['session', [
         'timestamp',
         'start_time',
@@ -74,7 +73,7 @@ const product_message_definitions = [
         'avg_heart_rate',
         'max_heart_rate',
         'total_distance',
-    ]],
+    ], 5],
     ['activity', [
         'timestamp',
         'local_timestamp',
@@ -82,10 +81,10 @@ const product_message_definitions = [
         'type',
         'event',
         'event_type',
-    ]],
-    ['course', [
-        'name',
-    ]],
+    ], 6],
+    // ['course', [
+    //     'name',
+    // ], 7],
 ];
 
 export { product_message_definitions };

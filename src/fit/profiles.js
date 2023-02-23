@@ -53,6 +53,11 @@ function Profiles(args = {}) {
         return types.mesg_num.values[name] ?? 0xFFFF;
     }
 
+    // String -> GlobalFieldDefinition{}
+    function fieldNameToField(fieldName) {
+        return fields[fieldName];
+    }
+
     function fieldNameToNumber(messageName, fieldName) {
         return messages[messageName].fields[fieldName];
     }
@@ -74,7 +79,12 @@ function Profiles(args = {}) {
 
         numberToMessageName,
         messageNameToNumber,
+
         numberToField,
+        fieldNameToField,
+        fieldNameToNumber,
+        fieldNameToSize,
+        fieldNameToBaseType,
     });
 }
 
