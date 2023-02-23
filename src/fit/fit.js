@@ -37,7 +37,7 @@ function FIT(args = {}) {
         }
 
         // FitRecord, DataView, Int -> DataView
-        function encode(record, view, i) {
+        function encode(definition, values = {}, view, i = 0) {
             if(isHeader(record)) {
                 return recordHeader.encode(record, view, i);
             }
@@ -46,7 +46,7 @@ function FIT(args = {}) {
             }
             if(isData(record)) {
                 // definition ?
-                return dataRecord.encode(record, view, i);
+                return dataRecord.encode(definition, values, view, i);
             }
             if(isCRC(record)) {
                 return CRC.encode(view, i);

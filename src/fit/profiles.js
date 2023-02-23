@@ -26,12 +26,27 @@ function Profiles(args = {}) {
         return types['mesg_num'].values[(number).toString()] ?? `message_${number}`;
     }
 
-    function numberToFieldName(messageName, fieldNumber) {
+    // String -> Field{}
+    function Field(name) {
+        return {name, ...(fields[name] ?? {})};
+    }
+
+    // Int -> Field{
+    //     name: String,
+    //     type: String,
+    //     base_type: BaseType,
+    //     units: String,
+    //     scale: Int,
+    //     offset: Int,
+    //     bits: Int,
+    //     accumulate: String
+    // }
+    function numberToField(messageName, fieldNumber) {
         const messageFields = messages[messageName].fields;
         for(let fieldName in messageFields) {
-            if(equals(messageFields[fieldName], fieldNumber)) return fieldName;
+            if(equals(messageFields[fieldName], fieldNumber)) return Field(fieldName);
         }
-        return `field_${fieldNumber}`;
+        return Field(`field_${fieldNumber}`);
     }
 
     function messageNameToNumber(name) {
@@ -59,7 +74,7 @@ function Profiles(args = {}) {
 
         numberToMessageName,
         messageNameToNumber,
-        numberToFieldName,
+        numberToField,
     });
 }
 

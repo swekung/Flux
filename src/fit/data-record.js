@@ -40,15 +40,14 @@ function DataRecord(args = {}) {
         view.setUint8(start, header, true);
 
         return definition.fields.reduce(function(acc, field) {
-            const fieldName = profiles.numberToFieldName(definition.name, field.number);
-            const value = values[fieldName];
+            const _field = profiles.numberToField(definition.name, field.number);
+            const value = (values[_field.name] * (_field.scale ?? 1)) + (_field.offset ?? 0);
             acc.view[typeToAccessor(field.base_type, 'set')](acc.i, value, endian);
             acc.i += field.size;
             return acc;
         }, {view, i: (start + recordHeaderSize)}).view;
     }
-
-    // {
+// {
     //     name: String,
     //     local_number: Int,
     //     fields: [
@@ -70,9 +69,10 @@ function DataRecord(args = {}) {
     // ->
     // {
     //     type: RecordType,
-    //     local_number: Int,
     //     name: String,
-    //     fields: {field_name: String,}
+    //     local_number: Int,
+    //     length: Int,
+    //     fields: {field_name: Any,}
     // }
     function decode(definition, view, start = 0) {
         const header       = recordHeader.decode(view.getUint8(start, true));
@@ -88,8 +88,13 @@ function DataRecord(args = {}) {
             local_number,
             length,
             fields: definition.fields.reduce(function(acc, field) {
+                const _field = profiles.numberToField(
+                    definition.name, field.number
+                );
+
                 let value;
                 let index = acc.i;
+
                 if(equals(field.base_type, 7)) {
                     value = '';
                     for(let f=0; f < field.size; f++) {
@@ -98,11 +103,9 @@ function DataRecord(args = {}) {
                     value = value.replace(/\x00/gi, '');
                 } else {
                     value = view[typeToAccessor(field.base_type, 'get')](index, endian);
+                    value = ((value - (_field.offset ?? 0)) / (_field.scale ?? 1));
                 }
-                const fieldName = profiles.numberToFieldName(
-                    definition.name, field.number
-                );
-                acc.fields[fieldName] = value;
+                acc.fields[_field.name] = value;
                 acc.i += field.size;
                 return acc;
             }, {fields: {}, i: (start + recordHeaderSize)}).fields,
