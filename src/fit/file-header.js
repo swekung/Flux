@@ -2,7 +2,7 @@ import { exists, equals, f, nth, prop, Maybe, expect } from '../functions.js';
 
 import {
     HeaderType, RecordType,
-    getField, setField,
+    getView, setView,
     ValueParser, identityParser,
 } from './common.js';
 
@@ -97,7 +97,7 @@ function FileHeader(args = {}) {
             const field = fields[fieldName];
             if(field.present(definition.headerSize)) {
                 const value = field.parser.encode(definition[fieldName] ?? acc.view);
-                setField(field, value, acc.view, acc.i, architecture);
+                setView(field.type, value, acc.view, acc.i, architecture, false);
                 acc.i += field.size;
             }
             return acc;
@@ -118,7 +118,7 @@ function FileHeader(args = {}) {
         return order.reduce(function(acc, fieldName) {
             const field = fields[fieldName];
             if(field.present(acc?.data?.headerSize)) {
-                const value = getField(field, view, acc.i, architecture);
+                const value = getView(field.type, view, acc.i, architecture, false);
                 acc.data[fieldName] = field.parser.decode(value);
                 acc.i += field.size;
                 acc.data._length += field.size;

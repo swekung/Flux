@@ -11,7 +11,7 @@ import {
     ValueParser, identityParser,
 } from './common.js';
 
-import { CRC } from './CRC.js';
+import { CRC } from './crc.js';
 import { fileHeader } from './file-header.js';
 import { recordHeader } from './record-header.js';
 import { fieldDefinition } from './field-definition.js';

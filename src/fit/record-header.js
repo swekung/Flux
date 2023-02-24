@@ -54,15 +54,12 @@ function RecordHeader() {
         let byte = 0b00000000 + (definition.localMessageType ?? 0);
         if(equals(definition.headerType, HeaderType.timestamp)) {
             byte = setBit(7, byte);
-            console.log(`timestamp: ${byte}`);
         };
         if(equals(definition.messageType, RecordType.definition)) {
             byte = setBit(6, byte);
-            console.log(`definition: ${byte}`);
         }
         if(equals(definition.messageTypeSpecific, 'developer')) {
             byte = setBit(5, byte);
-            console.log(`developer: ${byte}`);
         }
         return byte;
     }

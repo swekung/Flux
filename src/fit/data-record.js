@@ -2,9 +2,11 @@ import { equals, f, nthBit, expect } from '../functions.js';
 
 import {
     HeaderType, RecordType,
-    getField, setField, typeToAccessor,
+    getView, setView,
     ValueParser, identityParser,
+    type,
 } from './common.js';
+
 import { profiles } from './profiles.js';
 import { recordHeader } from './record-header.js';
 import { fieldDefinition } from './field-definition.js';
@@ -41,20 +43,21 @@ function DataRecord(args = {}) {
 
         return definition.fields.reduce(function(acc, field) {
             const _field = profiles.numberToField(definition.name, field.number);
-            const value = (values[_field.name] * (_field.scale ?? 1)) + (_field.offset ?? 0);
-            acc.view[typeToAccessor(field.base_type, 'set')](acc.i, value, endian);
+            const value  = values[_field.name];
+
+            if(type.string.isString(field.base_type)) {
+                type.string.encode(field, value, view, acc.i, endian);
+            } else if(type.timestamp.isTimestamp(_field.type)) {
+                type.timestamp.encode(field, value, view, acc.i, endian);
+            } else {
+                type.number.encode(_field, value, view, acc.i, endian);
+            }
+
             acc.i += field.size;
             return acc;
         }, {view, i: (start + recordHeaderSize)}).view;
     }
-// {
-    //     name: String,
-    //     local_number: Int,
-    //     fields: [
-    //         {number: Int, size: Int, base_type: base_type}
-    //     ]
-    // },
-    // ??
+
     // {
     //     type: RecordType
     //     architecture: Int,
@@ -93,18 +96,15 @@ function DataRecord(args = {}) {
                 );
 
                 let value;
-                let index = acc.i;
 
-                if(equals(field.base_type, 7)) {
-                    value = '';
-                    for(let f=0; f < field.size; f++) {
-                        value += String.fromCharCode(view.getUint8(index+f, endian));
-                    }
-                    value = value.replace(/\x00/gi, '');
+                if(type.string.isString(field.base_type)) {
+                    value = type.string.decode(field, view, acc.i, endian);
+                } else if(type.timestamp.isTimestamp(_field.type)) {
+                    value = type.timestamp.decode(field, view, acc.i, endian);
                 } else {
-                    value = view[typeToAccessor(field.base_type, 'get')](index, endian);
-                    value = ((value - (_field.offset ?? 0)) / (_field.scale ?? 1));
+                    value = type.number.decode(_field, view, acc.i, endian);
                 }
+
                 acc.fields[_field.name] = value;
                 acc.i += field.size;
                 return acc;
@@ -112,10 +112,27 @@ function DataRecord(args = {}) {
         };
     }
 
+    function toFITjs(definition, values) {
+        // check fields and values are same length
+        if(!equals(definition.length, values.length)) {
+            const msg = `DataRecord.toFITjs called with missing values for message: '${definition.name}'`;
+            console.warn(`fit: error: '${msg}'`, values, definition.fields);
+        }
+
+        return {
+            type: _type,
+            name: definition.name,
+            local_number: definition.local_number,
+            length: definition.data_record_length,
+            fields: values,
+        };
+    }
+
     return Object.freeze({
         type: _type,
         decode,
         encode,
+        toFITjs,
     });
 }
 

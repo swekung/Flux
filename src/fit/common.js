@@ -1,4 +1,4 @@
-import { f } from '../functions.js';
+import { equals, f } from '../functions.js';
 
 const HeaderType = {
     normal:    'normal',
@@ -11,14 +11,6 @@ const RecordType = {
     data:       'data',
     crc:        'crc',
 };
-
-function getField(field, dataview, i, architecture) {
-    return dataview[`get${field.type}`](i, architecture);
-}
-
-function setField(field, value, dataview, i, architecture) {
-    return dataview[`set${field.type}`](i, value, architecture);
-}
 
 // Base Type To DataView accessor method
 const uint8   = [0, 2, 7, 10, 13, 'enum', 'uint8', 'string', 'byte'];
@@ -50,6 +42,33 @@ function typeToAccessor(basetype, method = 'set') {
 }
 // END Base Type To DataView accessor method
 
+// BaseType | DataviewType, DataView, Int, Bool, Bool -> Dataview
+function getView(type, dataview, i = 0, architecture = true, useBaseType = true) {
+    if(useBaseType) {
+        return dataview[typeToAccessor(type, 'get')](i, architecture);
+    }
+    return dataview[`get${type}`](i, architecture);
+}
+
+// Int, DataView, Int, Bool, -> String
+function getStringView(size, dataview, i = 0, architecture = true) {
+    let value = '';
+    for(let f=0; f < size; f++) {
+        value += String.fromCharCode(dataview.getUint8(i+f, architecture));
+    }
+    return value.replace(/\x00/gi, '');
+}
+
+// BaseType | DataviewType, Number, DataView, Int, Bool -> Dataview
+function setView(
+    type, value, dataview, i = 0, architecture = true, useBaseType = true
+) {
+    if(useBaseType) {
+        return dataview[typeToAccessor(type, 'set')](i, value, architecture);
+    }
+    return dataview[`set${type}`](i, value, architecture);
+}
+
 function ValueParser(args = {}) {
     return Object.freeze({
         encode: args.encode ?? f.I,
@@ -59,15 +78,125 @@ function ValueParser(args = {}) {
 
 const identityParser = ValueParser();
 
+function FitString() {
+
+    // BaseType -> Bool
+    function isString(base_type) {
+        return equals(base_type, 7);
+    }
+
+    function encode() {
+    }
+
+    // {size: Int}, DataView, Int, Bool, -> String
+    function decode(field, dataview, i = 0, architecture) {
+        return getStringView(field.size, dataview, i, architecture);
+    }
+
+    return Object.freeze({
+        isString,
+        encode,
+        decode,
+    });
+}
+
+function FitTimestamp() {
+    const garmin_epoch = Date.parse('31 Dec 1989 00:00:00 GMT');
+
+    // FitSemanticType -> Bool
+    function isTimestamp(type) {
+        return ['date_time', 'local_date_time'].includes(type);
+    }
+
+    // JSTimestamp -> FitTimestamp
+    function apply(jsTimestamp) {
+        return Math.round((jsTimestamp - garmin_epoch) / 1000);
+    }
+
+    // FitTimestamp -> JSTimestamp
+    function remove(fitTimestamp) {
+        return (fitTimestamp * 1000) + garmin_epoch;
+    }
+
+    function encode(field, value, view, i, architecture) {
+        return setView(field.base_type, apply(value), view, i, architecture);
+    }
+
+    // {base_type: BaseType}, Dataview, Int, Bool -> Timestamp
+    function decode(field, view, i, architecture) {
+        return remove(getView(field.base_type, view, i, architecture));
+    }
+
+    return Object.freeze({
+        isTimestamp,
+        apply,
+        remove,
+        encode,
+        decode,
+    });
+}
+
+function FitNumber() {
+    function isNumber() {
+        throw `Not implemented!`;
+    }
+
+    function apply(scale, offset, value) {
+        return ((value ?? 0) * (scale ?? 1)) + (offset ?? 0);
+    }
+
+    function remove(scale, offset, value) {
+        return ((value ?? 0) - (offset ?? 0)) / (scale ?? 1);
+    }
+
+    // {base_type: BaseType, scale: Int, offset: Int}, Number, DataView, Int, Bool,
+    // ->
+    // DataView
+    function encode(field, value, view, i = 0, architecture = true) {
+        return setView(
+            field.base_type,
+            apply(field.scale, field.offset, value),
+            view, i, architecture
+        );
+    }
+
+    // {base_type: BaseType, scale: Int, offset: Int}, DataView, Int, Bool,
+    // ->
+    // Number
+    function decode(field, view, i = 0, architecture = true) {
+        return remove(
+            field.scale,
+            field.offset,
+            getView(field.base_type, view, i, architecture)
+        );
+    }
+
+    return Object.freeze({
+        isNumber,
+        apply,
+        remove,
+        encode,
+        decode,
+    });
+}
+
+const type = {
+    string: FitString(),
+    timestamp: FitTimestamp(),
+    number: FitNumber(),
+};
+
 export {
     HeaderType,
     RecordType,
 
-    getField,
-    setField,
     typeToAccessor,
+    getView,
+    setView,
 
     ValueParser,
     identityParser,
+
+    type,
 };
 

@@ -3,7 +3,6 @@ import { BaseType, BaseTypeDefinitions, } from './base-types.js';
 
 import {
     HeaderType, RecordType,
-    getField, setField,
     ValueParser, identityParser,
 } from './common.js';
 import { profiles } from './profiles.js';

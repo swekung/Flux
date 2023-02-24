@@ -11,18 +11,11 @@
 
 import { exists, existance, equals, first, second, last, map } from '../functions.js';
 
-import { Profiles } from './profiles.js';
 import { FIT } from './fit.js';
 
 function Activity(args = {}) {
 
-    const profiles = Profiles();
-    const fit      = FIT({profiles});
-
-    console.log('-----------------------------------------');
-    console.log(fit);
-    console.log(fit.fileHeader.decode);
-    console.log('-----------------------------------------');
+    const fit = FIT();
 
     function encode(data) {
         // TODO: structure
@@ -41,59 +34,6 @@ function Activity(args = {}) {
 }
 
 const activity = Activity();
-
-// move to fi.js
-// function Field(args = {}) {
-//     const defaults = {
-//         scale: 1,
-//         offset: 0,
-//     };
-
-//     const scale  = args.definition.scale ?? defaults.scale;
-//     const offset = args.definition.offset ?? defaults.offset;
-
-//     function applyScaleAndOffset(value) {
-//         return (value * scale) + (offset * scale);
-//     }
-//     function removeScaleAndOffset(value) {
-//         return (value - (offset * scale)) / scale;
-//     }
-
-//     function applyTransform(value) { return value; }
-//     function removeTransform(value) { return value; }
-
-//     function encode(value) {
-//         return applyScaleAndOffset(applyTransform(value));
-//     }
-
-//     function decode(value) {
-//         return removeTransform(removeScaleAndOffset(value));
-//     }
-
-//     return Object.freeze({
-//         encode,
-//         decode,
-//     });
-// }
-
-// function Timestamp() {
-//     const garmin_epoch = Date.parse('31 Dec 1989 00:00:00 GMT');
-
-//     function toFit(jsTimestamp) {
-//         return Math.round((jsTimestamp - garmin_epoch) / 1000);
-//     }
-
-//     function toJS(fitTimestamp) {
-//         return (fitTimestamp * 1000) + garmin_epoch;
-//     }
-
-//     return Object.freeze({
-//         toFit,
-//         toJS,
-//     });
-// }
-// // end move
-
 
 
 // function Data(args = {}) {
