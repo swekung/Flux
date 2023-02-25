@@ -13,7 +13,6 @@ import global_message_definitions from './global-message-definitions.json';
 import global_type_definitions from './global-type-definitions.json';
 import global_field_definitions from './global-field-definitions.json';
 
-
 function Profiles(args = {}) {
 
     // merge product types, messages, and fields with the global ones

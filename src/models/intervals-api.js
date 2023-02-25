@@ -2,14 +2,13 @@
 // intervals.icu basic http api access
 //
 // fill in api_key from settings page
-// NOTE: create activity uses a fit.mock()
 
 import {
     equals, empty, exists,
     isArray, isObject, isString, isNumber,
     unwrap,
 } from '../functions.js';
-import { mock } from '../fit/fit.js';
+import { fit } from '../fit/fit.js';
 import { Url, BodyType, Res, Req, Endpoint,  } from './common.js';
 
 const TimePeriod = {
@@ -145,7 +144,7 @@ function CreateActivityRequest() {
     function serialize(data) {
         // file: Binary, name: Option<String>, description: Option<String>
         const formData = new FormData();
-        formData.append("file", mock());
+        formData.append("file", {}); // empty file
         formData.append("name", "Test upload name 1");
         // formData.append("description", "Test description.");
         return formData;

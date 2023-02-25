@@ -4,7 +4,7 @@
 // this is the subset of definitions of messages and message fields
 // that the product/app fit file encoder whats to use
 
-const product_message_definitions = [
+const productMessageDefinitions = [
     ['file_id', [
         'time_created',
         'manufacturer',
@@ -12,18 +12,6 @@ const product_message_definitions = [
         'number',
         'type',
     ], 0],
-    ['field_description', [
-        'developer_data_index',
-        'field_definition_number',
-        'fit_base_type_id',
-        'field_name',
-        'scale',
-        'offset',
-        'units',
-        'fit_base_unit_id',
-        'native_mesg_num',
-        'native_field_num',
-    ], 1],
     ['event', [
         'timestamp',
         'event',
@@ -82,10 +70,22 @@ const product_message_definitions = [
         'event',
         'event_type',
     ], 6],
-    // ['course', [
-    //     'name',
-    // ], 7],
+    ['course', [
+        'name',
+    ], 7],
+    // ['field_description', [
+    //     'developer_data_index',
+    //     'field_definition_number',
+    //     'fit_base_type_id',
+    //     'field_name',
+    //     'scale',
+    //     'offset',
+    //     'units',
+    //     'fit_base_unit_id',
+    //     'native_mesg_num',
+    //     'native_field_num',
+    // ], 1],
 ];
 
-export { product_message_definitions };
+export default productMessageDefinitions;
 

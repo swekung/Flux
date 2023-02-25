@@ -5,6 +5,7 @@ import { empty, dataviewToArray, isObject, nthBit } from '../../src/functions.js
 // import { base_type, base_type_definitions } from '../../src/fit/base-types.js';
 import { Profiles } from '../../src/fit/profiles.js';
 import { FIT }      from '../../src/fit/fit.js';
+// import { appData }     from './app-data.js';
 // import { data }     from './data.js';
 
 
@@ -443,7 +444,6 @@ describe('DefinitionRecordJS', () => {
     });
 });
 
-
 describe('DataRecordJS', () => {
     test('encode', () => {
         // JS Object rep of definition record as decoded from .FIT binary
@@ -510,5 +510,80 @@ describe('DataRecordJS', () => {
 
         expect(res).toEqual(dataRecordJS);
     });
+});
+
+describe('Activity', () => {
+
+    const header = {
+        _type: 'header',
+        _length: 14,
+        headerSize: 14,
+        protocolVersion: '2.0',
+        profileVersion: '21.40',
+        dataSize: 0,
+        dataType: '.FIT',
+        crc: undefined,
+    };
+
+    const definitionRecordJS = {
+        type: 'definition',
+        name: 'record',
+        architecture: 0,
+        local_number: 3,
+        length: 39,
+        data_record_length: 27,
+        fields: [
+            {number: 253, size: 4, base_type: 'uint32'}, // timestamp
+            {number:   0, size: 4, base_type: 'sint32'}, // position_lat
+            {number:   1, size: 4, base_type: 'sint32'}, // position_long
+            {number:   2, size: 2, base_type: 'uint16'}, // altitude
+            {number:   3, size: 1, base_type: 'uint8'}, // heart_rate
+            {number:   4, size: 1, base_type: 'uint8'}, // cadence
+            {number:   5, size: 4, base_type: 'uint32'}, // distance
+            {number:   6, size: 2, base_type: 'uint16'}, // speed
+            {number:   7, size: 2, base_type: 'uint16'}, // power
+            {number:   9, size: 2, base_type: 'sint16'}, // grade
+            {number:  62, size: 1, base_type: 'uint8'}, // device_index
+        ]
+    };
+
+    const activity = [
+        header,
+        definitionRecordJS,
+    ];
+
+    const expected = [
+        // header
+        [14, 32, 92,8,  0,0,0,0,  46,70,73,84,  123,197],
+        // definition file_id
+        [64, 0, 0, 0,0, 5,  4,4,134  , 1,2,132  , 2,2,132  , 5,2,132  , 0,1,0],
+        // data file_id
+        [0, 138, 26, 40, 59, 4, 1, 0, 0, 0, 0, 4],
+
+        // definition record
+        // data record
+
+        // definition lap
+        // data lap
+
+        // definition session
+        // data session
+
+        // definition activity
+        // data activity
+
+        // crc
+    ];
+
+    // test('encode', () => {
+    //     // const view = new DataView(new Uint8Array(expected.flat()).buffer);
+    //     const res = fit.localActivity.toFITjs({
+    //         // records: appData.records,
+    //         // laps: appData.laps,
+    //     });
+
+    //     console.log(res);
+    //     expect(true).toEqual(true);
+    // });
 });
 

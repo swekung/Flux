@@ -131,11 +131,25 @@ function FileHeader(args = {}) {
         return equals(start, 0);
     }
 
+    function toFitJS(args = {}) {
+        return {
+            _type: 'header',
+            _length: args.headerSize ?? 14,
+            headerSize: args.headerSize ?? 14,
+            protocolVersion: args.protocolVersion ?? '2.0',
+            profileVersion: args.profileVersion ?? '21.40',
+            dataSize: 0,
+            dataType: '.FIT',
+            crc: undefined,
+        };
+    }
+
     return Object.freeze({
         type: _type,
         encode,
         decode,
         isFileHeader,
+        toFitJS,
     });
 }
 

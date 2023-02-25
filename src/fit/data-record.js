@@ -113,7 +113,6 @@ function DataRecord(args = {}) {
     }
 
     function toFITjs(definition, values) {
-        // check fields and values are same length
         if(!equals(definition.length, values.length)) {
             const msg = `DataRecord.toFITjs called with missing values for message: '${definition.name}'`;
             console.warn(`fit: error: '${msg}'`, values, definition.fields);
