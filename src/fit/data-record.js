@@ -113,10 +113,10 @@ function DataRecord(args = {}) {
     }
 
     function toFITjs(definition, values) {
-        if(!equals(definition.length, values.length)) {
-            const msg = `DataRecord.toFITjs called with missing values for message: '${definition.name}'`;
-            console.warn(`fit: error: '${msg}'`, values, definition.fields);
-        }
+        // if(!equals(definition.length, values.length)) {
+        //     const msg = `DataRecord.toFITjs called with missing values for message: '${definition.name}'`;
+        //     console.warn(`fit: error: '${msg}'`, values, definition.fields);
+        // }
 
         return {
             type: _type,

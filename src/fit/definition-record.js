@@ -185,7 +185,7 @@ function DefinitionRecord(args = {}) {
             name: messageName,
             local_number,
             length,
-            data_record_length: 0,
+            data_record_length: 1,
             fields: [],
         });
     }

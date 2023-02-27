@@ -3,9 +3,7 @@ import {
 } from '../../src/functions.js';
 import { FIT } from '../../src/fit/fit.js';
 import {
-    Event,
-    Lap,
-    Activity,
+    FileId
 } from '../../src/fit/activity.js';
 import { appData } from './app-data.js';
 
@@ -13,64 +11,64 @@ describe('Activity Message', () => {
     const fit = FIT();
 
     const productMessageDefinition = [
-        'activity', [
-            'timestamp',
-            'num_sessions',
+        'file_id', [
+            'time_created',
+            'manufacturer',
+            'product',
+            'number',
             'type',
-            'event',
-            'event_type',
-        ], 6];
+        ], 0];
 
     const definitionRecordJS = {
         type: 'definition',
+        name: 'file_id',
         architecture: 0,
-        name: 'activity',
-        local_number: 6,
+        local_number: 0,
         length: 21,
-        data_record_length: 10,
+        data_record_length: 12,
         fields: [
-            {number: 253, size: 4, base_type: 'uint32'}, // timestamp
-            {number: 1,   size: 2, base_type: 'uint16'}, // num_sessions
-            {number: 2,   size: 1, base_type: 'enum'},   // type
-            {number: 3,   size: 1, base_type: 'enum'},   // event
-            {number: 4,   size: 1, base_type: 'enum'},   // event_type
+            {number: 4, size: 4, base_type: 'uint32'},
+            {number: 1, size: 2, base_type: 'uint16'},
+            {number: 2, size: 2, base_type: 'uint16'},
+            {number: 5, size: 2, base_type: 'uint16'},
+            {number: 0, size: 1, base_type: 'enum'},
         ]
     };
 
     const dataRecordJS = {
         type: 'data',
-        name: 'activity',
-        local_number: 6,
-        length: 10,
+        name: 'file_id',
+        local_number: 0,
+        length: 12,
         fields: {
-            timestamp: 1038070838000, // 407005238, 54, 104, 66, 24,
-            num_sessions: 1, //
-            type: 0, // manual
-            event: 26, // activity
-            event_type: 1, // stop
-        }
+            time_created: 1038070838000,
+            manufacturer: 255,
+            product:      0,
+            number:       0,
+            type:         4,
+        },
     };
 
     const definitionRecordBinary = [
-        0b01000110,  // header, 70, 0b01000110
+        0b01000000,  // header, 64, 0b01000000
         0,           // reserved
         0,           // architecture
-        34, 0,       // global number
+        0, 0,        // global number
         5,           // number of fields
-        253, 4, 134, // timestamp
-          1, 2, 132, // num sessions
-          2, 1,   0, // type
-          3, 1,   0, // event
-          4, 1,   0, // event_type
+        4, 4, 134,   // time_created
+        1, 2, 132,   // manufacturer
+        2, 2, 132,   // product
+        5, 2, 132,   // number
+        0, 1, 0,     // type
     ];
 
     const dataRecordBinary = [
-        0b00000110,      // header, 6, 0b00000110
-        54, 104, 66, 24, // timestamp
-        1, 0,            // num sessions
-        0,               // type
-        26,              // event
-        1,               // stop
+        0b00000000,      // header, 0, 0b00000000
+        54, 104, 66, 24, // time_created
+        255, 0,          // manufacturer
+        0, 0,            // product
+        0, 0,            // number
+        4,               // type
     ];
 
     test('to FITjs definition message', () => {
@@ -80,13 +78,9 @@ describe('Activity Message', () => {
 
     test('to FITjs data message', () => {
         const res = fit.dataRecord.toFITjs(
-            definitionRecordJS, {
-                timestamp: 1038070838000, // 407005238, 54, 104, 66, 24,
-                num_sessions: 1, //
-                type: 0, // manual
-                event: 26, // activity
-                event_type: 1, // stop
-            },
+            definitionRecordJS, FileId({
+                time_created: 1038070838000,
+            }),
         );
         expect(res).toEqual(dataRecordJS);
     });

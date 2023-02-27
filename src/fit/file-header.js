@@ -83,8 +83,8 @@ function FileHeader(args = {}) {
     ];
 
     // FitRecord{
-    //  _type: Record.header,
-    //  _length: Int,
+    //  type: Record.header,
+    //  length: Int,
     //  headerSize: Int,
     //  protocolVersion: String,
     //  profileVersion: String,
@@ -105,8 +105,8 @@ function FileHeader(args = {}) {
     };
 
     // DataView -> FitRecord{
-    //  _type: Record.header,
-    //  _length: Int,
+    //  type: Record.header,
+    //  length: Int,
     //  headerSize: Int,
     //  protocolVersion: String,
     //  profileVersion: String,
@@ -121,20 +121,20 @@ function FileHeader(args = {}) {
                 const value = getView(field.type, view, acc.i, architecture, false);
                 acc.data[fieldName] = field.parser.decode(value);
                 acc.i += field.size;
-                acc.data._length += field.size;
+                acc.data.length += field.size;
             }
             return acc;
-        }, {i: start, data: {_type: _type, _length: 0}}).data;
+        }, {i: start, data: {type: _type, length: 0}}).data;
     };
 
     function isFileHeader(view, start = 0) {
         return equals(start, 0);
     }
 
-    function toFitJS(args = {}) {
+    function toFITjs(args = {}) {
         return {
-            _type: 'header',
-            _length: args.headerSize ?? 14,
+            type: _type,
+            length: args.headerSize ?? 14,
             headerSize: args.headerSize ?? 14,
             protocolVersion: args.protocolVersion ?? '2.0',
             profileVersion: args.profileVersion ?? '21.40',
@@ -149,7 +149,7 @@ function FileHeader(args = {}) {
         encode,
         decode,
         isFileHeader,
-        toFitJS,
+        toFITjs,
     });
 }
 

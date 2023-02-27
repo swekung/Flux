@@ -12,7 +12,7 @@ import { workouts as workoutsFile }  from '../workouts/workouts.js';
 import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
 // import { FIT } from '../fit/fit.js';
-import { activity } from '../fit/activity.js';
+import { localActivity } from '../fit/activity.js';
 import { course } from '../fit/course.js';
 import { Model as Cycling } from '../physics.js';
 import { fluxApi as api } from './api.js';
