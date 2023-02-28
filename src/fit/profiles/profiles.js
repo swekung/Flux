@@ -1,14 +1,12 @@
 //
 // Profiles
 //
-// merge, shape, and expose, data from the global and product profile json files
+// merge, shape, and export, data from the global and product profile json files
 //
 
-// import json from "./foo.json" assert { type: "json" };
+import { equals } from '../../functions.js';
 
-import { equals } from '../functions.js';
 import { BaseType, BaseTypeDefinitions, } from './base-types.js';
-
 import global_message_definitions from './global-message-definitions.json';
 import global_type_definitions from './global-type-definitions.json';
 import global_field_definitions from './global-field-definitions.json';
