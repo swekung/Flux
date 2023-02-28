@@ -7,7 +7,7 @@ import {
     Lap,
     Activity,
 } from '../../src/fit/activity.js';
-import { appData } from './app-data.js';
+import { appData } from './data.js';
 
 describe('Activity Message', () => {
     const fit = FIT();

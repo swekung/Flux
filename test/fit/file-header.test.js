@@ -1,6 +1,4 @@
-import {
-    empty, first, last, dataviewToArray, isObject, nthBit,
-} from '../../src/functions.js';
+import { dataviewToArray, isObject, nthBit } from '../../src/functions.js';
 import { FIT } from '../../src/fit/fit.js';
 
 function toUint16(arr) {
@@ -94,3 +92,4 @@ describe('reads fit file header', () => {
         });
     });
 });
+

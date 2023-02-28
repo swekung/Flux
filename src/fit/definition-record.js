@@ -54,11 +54,15 @@ function DefinitionRecord(args = {}) {
         return 0;
     }
 
-    // {headerType: String, messageType: String, messageTypeSpecific: String, localMessageType: Int}
-
-    // {name: String, local_number: Int, fields: [
-    //     {number: Int, size: Int, base_type: BaseType}
-    // ]}
+    // {
+    //     type: RecordType,
+    //     name: String,
+    //     local_number: Int,
+    //     architecture: Int,
+    //     length: Int,
+    //     data_record_length: Int,
+    //     fields: [{number: Int, size: Int, base_type: BaseType}]
+    // }
     // -> DataView
     function encode(definition, view, i = 0) {
         const header = recordHeader.encode({
@@ -76,7 +80,7 @@ function DefinitionRecord(args = {}) {
         view.setUint16(i+3, globalNumber,   true);
         view.setUint8( i+5, numberOfFields, true);
 
-        i = fixedContentLength;
+        i += fixedContentLength;
         definition.fields.forEach((field) => {
             fieldDefinition.encode(field, view, i);
             i += fieldLength;
@@ -106,8 +110,8 @@ function DefinitionRecord(args = {}) {
     // ->
     // {
     //     type: RecordType
-    //     architecture: Int,
     //     name: String,
+    //     architecture: Int,
     //     local_number: Int,
     //     length: Int,
     //     data_record_length: Int,

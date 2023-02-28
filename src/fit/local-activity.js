@@ -2,16 +2,15 @@
 // Local Activity Encoder
 //
 
-import { exists, equals, first, last, f, expect, } from '../functions.js';
+import { equals, first, last, f, expect, dataviewToArray } from '../functions.js';
 import { profiles } from './profiles.js';
 import productMessageDefinitions from './product-message-definitions.js';
 
 import { CRC } from './crc.js';
 import { fileHeader } from './file-header.js';
-import { recordHeader } from './record-header.js';
-import { fieldDefinition } from './field-definition.js';
 import { definitionRecord } from './definition-record.js';
 import { dataRecord } from './data-record.js';
+import { FITjs } from './fitjs.js';
 
 function LocalActivity(args = {}) {
     const definitions = productMessageDefinitions
@@ -21,13 +20,9 @@ function LocalActivity(args = {}) {
               return acc;
           }, {});
 
-    function toRecordData(record) {
-        return ;
-    }
-
-    function toLapData(lap, message_index) {
-    }
-
+    // {records: [{<field>: Any}], laps: [{<field>: Any}]}
+    // ->
+    // [FITjs]
     function toFITjs(args = {}) {
         const records = args.records ?? [];
         const laps = args.laps ?? [];
@@ -40,6 +35,7 @@ function LocalActivity(args = {}) {
         const structure = [
             // file header
             FileHeader(),
+
             // definition file_id
             definitions.file_id,
             // data file_id
@@ -47,12 +43,14 @@ function LocalActivity(args = {}) {
                 definitions.file_id,
                 FileId({time_created})
             ),
+
             // definition record
             definitions.record,
             // data record messages
             ...records.map((record) => dataRecord.toFITjs(
                 definitions.record, record
             )),
+
             // definition lap
             definitions.lap,
             // data lap messages
@@ -61,6 +59,7 @@ function LocalActivity(args = {}) {
                     definitions.lap,
                     Lap({...lap, message_index, timestamp})),
             ),
+
             // definition session
             definitions.session,
             // data session
@@ -73,6 +72,7 @@ function LocalActivity(args = {}) {
                     timestamp,
                 })
             ),
+
             // definition activity
             definitions.activity,
             // data activity
@@ -81,11 +81,12 @@ function LocalActivity(args = {}) {
                 Activity({timestamp,})
             ),
             // crc, needs to be computed last evetytime when encoding to binary
+            CRC.toFITjs(),
         ];
 
         const header = first(structure);
         const dataSize = structure.reduce(
-            (acc, x) => acc+=(x?.length ?? 0), -header.length
+            (acc, x) => acc+=(x?.length ?? 0), -(header.length + CRC.size)
         );
 
         header.dataSize = dataSize;
@@ -93,17 +94,11 @@ function LocalActivity(args = {}) {
         return structure;
     }
 
-    //
+    // {records: [{<field>: Any}], laps: [{<field>: Any}]}
+    // -> Dataview
     function encode(args = {}) {
         const fitjs = toFITjs(args);
-        const header = first(fitjs);
-        const dataSize = header.dataSize;
-        const crcSize = 2;
-        const viewSize = header.dataSize + header.legnth + crcSize;
-
-        const view = new DataView(new Uint8Array(viewSize).buffer);
-
-        return view;
+        return FITjs.encode(fitjs);
     }
 
     return Object.freeze({

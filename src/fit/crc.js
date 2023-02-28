@@ -1,6 +1,9 @@
 import { equals, isDataView, f, } from '../functions.js';
+import { RecordType } from './common.js';
 
 function CRCFactory(args = {}) {
+    const _type = RecordType.crc;
+
     const size = 2;
     const architecture = args.architecture;
 
@@ -51,12 +54,20 @@ function CRCFactory(args = {}) {
 
     function encode(crc, view, i = 0) {
         view.setUint16(i, crc, architecture);
-        return crc;
+        return view;
     }
 
     function decode(view, i = 0) {
         let value = view.getUint16(i, true);
-        return {type: 'crc', length: size, value: value};
+        return {type: _type, length: size, crc: value};
+    }
+
+    function toFITjs(crc) {
+        return {
+            type: _type,
+            length: size,
+            crc: crc ?? undefined,
+        };
     }
 
     return Object.freeze({
@@ -65,6 +76,7 @@ function CRCFactory(args = {}) {
         isValid,
         encode,
         decode,
+        toFITjs,
     });
 }
 

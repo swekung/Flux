@@ -1,15 +1,7 @@
-import {
-    empty, first, last, dataviewToArray, isObject, nthBit,
-} from '../../src/functions.js';
+import { first, last, dataviewToArray } from '../../src/functions.js';
 import { FIT } from '../../src/fit/fit.js';
-import {
-    localActivity,
-    Event,
-    Lap,
-    Session,
-    Activity,
-} from '../../src/fit/activity.js';
-import { appData } from './app-data.js';
+import { Session } from '../../src/fit/activity.js';
+import { appData } from './data.js';
 
 describe('Session Message', () => {
     const fit = FIT();
@@ -171,7 +163,7 @@ describe('Session Message', () => {
 
         const res = fit.dataRecord.encode(
             definitionRecordJS,
-            dataRecordJS.fields,
+            dataRecordJS,
             view,
         );
 

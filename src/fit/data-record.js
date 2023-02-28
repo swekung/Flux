@@ -25,14 +25,16 @@ function DataRecord(args = {}) {
     //     data_record_length: Int,
     //     fields: [{number: Int, size: Int, base_type: BaseType}]
     // },
-    // {field_name: Any},
+    // {fields: {field_name: Any}} | {field_name: Any},
     // DataView,
     // Int
     // ->
     // DataView
-    function encode(definition, values, view, start = 0) {
+    function encode(definition, data, view, start = 0) {
         const architecture = definition.architecture ?? 0;
         const endian       = !architecture; // arch wierdness?
+
+        if(!('fields' in data)) data = {fields: data};
 
         const header = recordHeader.encode({
             messageType:      _type,
@@ -43,7 +45,7 @@ function DataRecord(args = {}) {
 
         return definition.fields.reduce(function(acc, field) {
             const _field = profiles.numberToField(definition.name, field.number);
-            const value  = values[_field.name];
+            const value  = data.fields[_field.name];
 
             if(type.string.isString(field.base_type)) {
                 type.string.encode(field, value, view, acc.i, endian);

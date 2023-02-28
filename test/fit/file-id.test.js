@@ -1,11 +1,7 @@
-import {
-    empty, first, last, dataviewToArray,
-} from '../../src/functions.js';
+import { dataviewToArray } from '../../src/functions.js';
 import { FIT } from '../../src/fit/fit.js';
-import {
-    FileId
-} from '../../src/fit/activity.js';
-import { appData } from './app-data.js';
+import { FileId } from '../../src/fit/activity.js';
+import { appData } from './data.js';
 
 describe('Activity Message', () => {
     const fit = FIT();
@@ -100,7 +96,7 @@ describe('Activity Message', () => {
 
         const res = fit.dataRecord.encode(
             definitionRecordJS,
-            dataRecordJS.fields,
+            dataRecordJS,
             view,
         );
 

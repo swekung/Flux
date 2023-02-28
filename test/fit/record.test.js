@@ -1,8 +1,6 @@
-import {
-    empty, first, last, dataviewToArray, isObject, nthBit,
-} from '../../src/functions.js';
+import { dataviewToArray } from '../../src/functions.js';
 import { FIT } from '../../src/fit/fit.js';
-import { appData } from './app-data.js';
+import { appData } from './data.js';
 
 describe('Record Message', () => {
     const fit = FIT();
@@ -125,7 +123,7 @@ describe('Record Message', () => {
 
         const res = fit.dataRecord.encode(
             definitionRecordJS,
-            dataRecordJS.fields,
+            dataRecordJS,
             view,
         );
 
