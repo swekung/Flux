@@ -1,10 +1,9 @@
 import { first, last, dataviewToArray } from '../../src/functions.js';
-import { FIT } from '../../src/fit/fit.js';
-import { Session } from '../../src/fit/activity.js';
+import { fit } from '../../src/fit/fit.js';
+import { Session } from '../../src/fit/local-activity.js';
 import { appData } from './data.js';
 
 describe('Session Message', () => {
-    const fit = FIT();
 
     const productMessageDefinition = [
         'session', [

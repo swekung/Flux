@@ -1,9 +1,8 @@
 import { dataviewToArray } from '../../src/functions.js';
-import { FIT } from '../../src/fit/fit.js';
+import { fit } from '../../src/fit/fit.js';
 import { appData } from './data.js';
 
 describe('Record Message', () => {
-    const fit = FIT();
 
     const productMessageDefinition = [
         'record', [

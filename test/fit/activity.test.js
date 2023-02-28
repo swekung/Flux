@@ -1,16 +1,11 @@
 import {
     empty, first, last, dataviewToArray,
 } from '../../src/functions.js';
-import { FIT } from '../../src/fit/fit.js';
-import {
-    Event,
-    Lap,
-    Activity,
-} from '../../src/fit/activity.js';
+import { fit } from '../../src/fit/fit.js';
+import { Activity } from '../../src/fit/local-activity.js';
 import { appData } from './data.js';
 
 describe('Activity Message', () => {
-    const fit = FIT();
 
     const productMessageDefinition = [
         'activity', [

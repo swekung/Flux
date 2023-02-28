@@ -21,10 +21,12 @@ describe('AppData', () => {
             laps: appData.laps,
         });
 
-        // console.log(fitBinary.flat().length);
-
         expect(dataviewToArray(res)).toEqual(fitBinary.flat());
+
+        // debug
+        // console.log(fitBinary.flat().length);
         // expect(res.map(dataviewToArray)).toEqual(fitBinary);
+        // END debug
     });
 });
 

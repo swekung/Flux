@@ -349,9 +349,9 @@ const fitBinary = [
         14,           // header length
         32,           // profile version
         92,8,         // protocol version
-        108,1,0,0,    // file size
+        108,1,0,0,    // data size (without header and crc)
         46,70,73,84,  // data type (ASCII for ".FIT")
-        46, 134,      // header crc
+        163, 111,     // header crc
     ],
     // definition file_id
     [
@@ -550,8 +550,8 @@ const fitBinary = [
     ],
     // crc, needs to be computed last evetytime when encoding to binary
     [
-        144,
-        194,
+        193,
+        3,
     ],
 ];
 // END Expected FIT binary
