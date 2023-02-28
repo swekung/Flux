@@ -1,11 +1,10 @@
-import { equals, first, second, third, nth, nthBit, f, expect } from '../functions.js';
-import { BaseType, BaseTypeDefinitions, } from './base-types.js';
+import { nth, f, } from '../functions.js';
 
 import {
     HeaderType, RecordType,
     ValueParser, identityParser,
 } from './common.js';
-import { profiles } from './profiles.js';
+import { profiles } from './profiles/profiles.js';
 import { recordHeader } from './record-header.js';
 import { fieldDefinition } from './field-definition.js';
 

@@ -1,4 +1,7 @@
-import { equals, isNumber, isObject, f, nthBit, setBit, } from '../functions.js';
+import {
+    equals, isNumber, isObject, f, nthBit, setBit,
+} from '../functions.js';
+
 import {
     HeaderType, RecordType,
     ValueParser, identityParser,

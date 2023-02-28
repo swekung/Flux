@@ -1,4 +1,4 @@
-import { exists, equals, f, nth, prop, Maybe, expect } from '../functions.js';
+import { exists, equals, f, } from '../functions.js';
 
 import {
     HeaderType, RecordType,

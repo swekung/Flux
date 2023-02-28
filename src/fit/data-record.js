@@ -1,4 +1,4 @@
-import { equals, f, nthBit, expect } from '../functions.js';
+import { equals, f, } from '../functions.js';
 
 import {
     HeaderType, RecordType,
@@ -7,7 +7,7 @@ import {
     type,
 } from './common.js';
 
-import { profiles } from './profiles.js';
+import { profiles } from './profiles/profiles.js';
 import { recordHeader } from './record-header.js';
 import { fieldDefinition } from './field-definition.js';
 
