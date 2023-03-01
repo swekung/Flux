@@ -2,10 +2,10 @@
 // Local Activity Encoder
 //
 
-import { equals, first, last, f, expect, dataviewToArray } from '../functions.js';
-import { profiles } from './profiles.js';
-import productMessageDefinitions from './product-message-definitions.js';
+import { first, last, f, expect, } from '../functions.js';
 
+import { profiles } from './profiles/profiles.js';
+import productMessageDefinitions from './profiles/product-message-definitions.js';
 import { CRC } from './crc.js';
 import { fileHeader } from './file-header.js';
 import { definitionRecord } from './definition-record.js';
@@ -85,11 +85,11 @@ function LocalActivity(args = {}) {
         ];
 
         const header = first(structure);
-        const dataSize = structure.reduce(
-            (acc, x) => acc+=(x?.length ?? 0), -(header.length + CRC.size)
+        const fileSize = structure.reduce(
+            (acc, x) => acc+=(x?.length ?? 0), 0
         );
 
-        header.dataSize = dataSize;
+        header.dataSize = fileSize -(header.length + CRC.size);
 
         return structure;
     }

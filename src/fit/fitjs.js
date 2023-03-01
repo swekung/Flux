@@ -2,7 +2,8 @@
 // FITjs
 //
 
-import { equals, first, f, expect, dataviewToArray } from '../functions.js';
+import { equals, first, f, dataviewToArray } from '../functions.js';
+
 import { CRC } from './crc.js';
 import { HeaderType, RecordType } from './common.js';
 import { fileHeader } from './file-header.js';
@@ -40,7 +41,8 @@ function FitRecord() {
             return dataRecord.encode(definition, recordJS, view, i);
         }
         if(isCRC(recordJS)) {
-            return CRC.encode(CRC.calculateCRC(view, 0, i), view, i);
+            const crc = CRC.calculateCRC(view, 0, i);
+            return CRC.encode(crc, view, i);
         }
 
         console.warn(`Unknown RecordType ${recordJS.type}`, recordJS);
@@ -84,10 +86,6 @@ function FITjsParser() {
 
         const view = new DataView(new Uint8Array(viewSize).buffer);
 
-        // debug
-        // const arr = [];
-        // end debug
-
         fitJS.reduce(function(acc, recordJS) {
             if((acc.i + recordJS.length) > viewSize) {
                 console.log(
@@ -96,13 +94,6 @@ function FITjsParser() {
             }
 
             fitRecord.encode(recordJS, acc.view, acc.i);
-
-            // debug
-            // const slice = new DataView(
-            //     acc.view.buffer.slice(acc.i, acc.i + recordJS.length));
-            // arr.push(slice);
-            // console.log(dataviewToArray(slice));
-            // end debug
 
             acc.i += recordJS.length;
             return acc;

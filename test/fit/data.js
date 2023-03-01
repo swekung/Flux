@@ -3,10 +3,10 @@
 // Records
 const records = [
     {
-        timestamp: 1038070835000,  // 407005235, 51, 104, 66, 24,
+        timestamp: 1669140869000,  // 1038075269, 133, 197, 223, 61,
         position_lat: -128450465,  // sint32, semicircles, 95, 0, 88, 248,
         position_long: 1978610201, // sint32, semicircles,  25, 50, 239, 117,
-        altitude: 87,              // uint16, scale 5, offset 500, m, 935, 167, 3,
+        altitude: 87,              // uint16, scale 5, offset 500, m, 2935, 119, 11,
         heart_rate: 90,            // uint8, bpm, 90
         cadence: 70,               // uint8, rpm, 70
         distance: 7.66,            // uint32, scale 100, m, 766, 254, 2, 0, 0,
@@ -16,10 +16,10 @@ const records = [
         device_index: 0,           // uint8, 0
     },
     {
-        timestamp: 1038070836000,  // 407005236, 52, 104, 66, 24,
+        timestamp: 1669140870000,  // 1038075270, 134, 197, 223, 61,
         position_lat: -128449747,  // sint32, semicircles, 45, 3, 88, 248,
         position_long: 1978610154, // sint32, semicircles, 234, 49, 239, 117,
-        altitude: 87,              // uint16, scale 5, offset 500, m, 935, 167, 3,
+        altitude: 87,              // uint16, scale 5, offset 500, m, 2935, 119, 11,
         heart_rate: 91,            // uint8, bpm,
         cadence: 71,               // uint8, rpm
         distance: 14.36,           // uint32, scale 100, m, 156, 5, 0, 0,
@@ -29,10 +29,10 @@ const records = [
         device_index: 0,           // uint8, 0
     },
     {
-        timestamp: 1038070837000,  // 407005237, 53, 104, 66, 24,
+        timestamp: 1669140871000,  // 1038075271, 135, 197, 223, 61,
         position_lat: -128449037,  // sint32, semicircles, 243, 5, 88, 248,
         position_long: 1978609898, // sint32, semicircles, 234, 48, 239, 117,
-        altitude: 87,              // uint16, scale 5, offset 500, m, 935, 167, 3,
+        altitude: 87,              // uint16, scale 5, offset 500, m, 2935, 119, 11,
         heart_rate: 92,            // uint8, bpm
         cadence: 72,               // uint8, rpm
         distance:	21.34,           // uint32, scale 100, m, 86, 8, 0, 0,
@@ -42,10 +42,10 @@ const records = [
         device_index: 0,           // uint8, 0
     },
     {
-        timestamp: 1038070838000,  // 407005238, 54, 104, 66, 24,
+        timestamp: 1669140872000,  // 1038075272, 136, 197, 223, 61,
         position_lat: -128448324,  // sint32, semicircles, 188, 8, 88, 248,
         position_long: 1978609588, // sint32, semicircles, 180, 47, 239, 117,
-        altitude: 87,              // uint16, scale 5, offset 500, m, 935, 167, 3,
+        altitude: 87,              // uint16, scale 5, offset 500, m, 2935, 119, 11,
         heart_rate: 93,            // uint8, bpm
         cadence: 73,               // uint8, rpm
         distance:	28.56,           // uint32, scale 100, m, 40, 11, 0, 0,
@@ -59,8 +59,8 @@ const records = [
 // Laps
 const laps = [
     {
-        start_time: 1038070835000, // start time
-        timestamp: 1038070838000,  // end time
+        start_time: 1669140869000, // start time
+        timestamp: 1669140872000,  // end time
     },
 ];
 
@@ -80,7 +80,7 @@ const FITjs = [
         profileVersion: '21.40',
         dataSize: 364,
         dataType: '.FIT',
-        crc: undefined,
+        crc: 0,
     },
     // definition file_id
     {
@@ -105,7 +105,7 @@ const FITjs = [
         local_number: 0,
         length: 12,
         fields: {
-            time_created: 1038070838000,
+            time_created: 1669140872000,
             manufacturer: 255,
             product:      0,
             number:       0,
@@ -141,7 +141,7 @@ const FITjs = [
         local_number: 3,
         length: 28,
         fields: {
-            timestamp: 1038070835000,  //
+            timestamp: 1669140869000,  //
             position_lat: -128450465,  // sint32, semicircles
             position_long: 1978610201, // sint32, semicircles
             altitude: 87,              // uint16, scale 5, offset 500, m
@@ -160,7 +160,7 @@ const FITjs = [
         local_number: 3,
         length: 28,
         fields: {
-            timestamp: 1038070836000,  //
+            timestamp: 1669140870000,  //
             position_lat: -128449747,  // sint32, semicircles
             position_long: 1978610154, // sint32, semicircles
             altitude: 87,              // uint16, scale 5, offset 500, m
@@ -179,7 +179,7 @@ const FITjs = [
         local_number: 3,
         length: 28,
         fields: {
-            timestamp: 1038070837000,  //
+            timestamp: 1669140871000,  //
             position_lat: -128449037,  // sint32, semicircles
             position_long: 1978609898, // sint32, semicircles
             altitude: 87,              // uint16, scale 5, offset 500, m
@@ -198,7 +198,7 @@ const FITjs = [
         local_number: 3,
         length: 28,
         fields: {
-            timestamp: 1038070838000,  //
+            timestamp: 1669140872000,  //
             position_lat: -128448324,  // sint32, semicircles
             position_long: 1978609588, // sint32, semicircles
             altitude: 87,              // uint16, scale 5, offset 500, m
@@ -236,8 +236,8 @@ const FITjs = [
         local_number: 4,
         length: 21,
         fields: {
-            timestamp: 1038070838000,
-            start_time: 1038070835000,
+            timestamp:  1669140872000,
+            start_time: 1669140869000,
             total_elapsed_time: 3,
             total_timer_time: 3,
             message_index: 0,
@@ -281,8 +281,8 @@ const FITjs = [
         local_number: 5,
         length: 41,
         fields: {
-            timestamp: 1038070838000,
-            start_time: 1038070835000,
+            timestamp:  1669140872000,
+            start_time: 1669140869000,
             total_elapsed_time: 3,
             total_timer_time: 3,
             message_index: 0,
@@ -324,7 +324,7 @@ const FITjs = [
         local_number: 6,
         length: 10,
         fields: {
-            timestamp: 1038070838000,
+            timestamp: 1669140872000,
             num_sessions: 1,
             type: 0,
             event: 26,
@@ -368,12 +368,12 @@ const fitBinary = [
     ],
     // data file_id
     [
-        0b00000000,      // header, 0, 0b00000000
-        54, 104, 66, 24, // time_created
-        255, 0,          // manufacturer
-        0, 0,            // product
-        0, 0,            // number
-        4,               // type
+        0b00000000,        // header, 0, 0b00000000
+        136, 197, 223, 61, // time_created
+        255, 0,            // manufacturer
+        0, 0,              // product
+        0, 0,              // number
+        4,                 // type
     ],
     // definition record
     [
@@ -397,10 +397,10 @@ const fitBinary = [
     // data record
     [
         0b0000011,         // header
-        51, 104, 66, 24,   // timestamp
+        133, 197, 223, 61, // timestamp
         95, 0, 88, 248,    // position_lat
         25, 50, 239, 117,  // position_long
-        167, 3,            // altitude 935
+        119, 11,           // altitude 2935
         90,                // heart_rate
         70,                // cadence
         254, 2, 0, 0,      // distance
@@ -411,10 +411,10 @@ const fitBinary = [
     ],
     [
         0b0000011,         // header
-        52, 104, 66, 24,   // timestamp
+        134, 197, 223, 61, // timestamp
         45, 3, 88, 248,    // position_lat
         234, 49, 239, 117, // position_long
-        167, 3,            // altitude 935
+        119, 11,           // altitude 2935
         91,                // heart_rate
         71,                // cadence
         156, 5, 0, 0,      // distance
@@ -425,10 +425,10 @@ const fitBinary = [
     ],
     [
         0b0000011,         // header
-        53, 104, 66, 24,   // timestamp
+        135, 197, 223, 61, // timestamp
         243, 5, 88, 248,   // position_lat
         234, 48, 239, 117, // position_long
-        167, 3,            // altitude 935
+        119, 11,           // altitude 2935
         92,                // heart_rate
         72,                // cadence
         86, 8, 0, 0,       // distance
@@ -439,10 +439,10 @@ const fitBinary = [
     ],
     [
         0b0000011,         // header
-        54, 104, 66, 24,   // timestamp
+        136, 197, 223, 61, // timestamp
         188, 8, 88, 248,   // position_lat
         180, 47, 239, 117, // position_long
-        167, 3,            // altitude 935
+        119, 11,           // altitude 2935
         93,                // heart_rate
         73,                // cadence
         40, 11, 0, 0,      // distance
@@ -468,14 +468,14 @@ const fitBinary = [
     ],
     // data lap
     [
-        0b00000100,      // header, 68, 0b00001000
-        54, 104, 66, 24, // timestamp
-        51, 104, 66, 24, // start_time
-        184, 11, 0, 0,   // total_elapsed_time
-        184, 11, 0, 0,   // total_timer_time
-        0, 0,            // message_index
-        9,               // event
-        1,               // event_type
+        0b00000100,        // header, 68, 0b00001000
+        136, 197, 223, 61, // timestamp
+        133, 197, 223, 61, // start_time
+        184, 11, 0, 0,     // total_elapsed_time
+        184, 11, 0, 0,     // total_timer_time
+        0, 0,              // message_index
+        9,                 // event
+        1,                 // event_type
     ],
 
     // definition session
@@ -506,25 +506,25 @@ const fitBinary = [
     ],
     // data session
     [
-        0b00000101,      // header, 5, 0b00000101
-        54, 104, 66, 24, // timestamp
-        51, 104, 66, 24, // start_time
-        184, 11, 0, 0,   // total_elapsed_time
-        184, 11, 0, 0,   // total_timer_time
-        0, 0,            // message_index
-        2,               // sport
-        58,              // sub_sport
-        40, 11, 0, 0,    // total_distance
-        107, 27,         // avg_speed
-        74, 29,          // max_speed
-        91,              // avg_heart_rate
-        93,              // max_heart_rate
-        71,              // avg_cadence
-        73,              // max_cadence
-        161, 0,          // avg_power
-        163, 0,          // max_power
-        0, 0,            // first_lap_index
-        1, 0,            // num_laps
+        0b00000101,        // header, 5, 0b00000101
+        136, 197, 223, 61, // timestamp
+        133, 197, 223, 61, // start_time
+        184, 11, 0, 0,     // total_elapsed_time
+        184, 11, 0, 0,     // total_timer_time
+        0, 0,              // message_index
+        2,                 // sport
+        58,                // sub_sport
+        40, 11, 0, 0,      // total_distance
+        107, 27,           // avg_speed
+        74, 29,            // max_speed
+        91,                // avg_heart_rate
+        93,                // max_heart_rate
+        71,                // avg_cadence
+        73,                // max_cadence
+        161, 0,            // avg_power
+        163, 0,            // max_power
+        0, 0,              // first_lap_index
+        1, 0,              // num_laps
     ],
     // definition activity
     [
@@ -541,17 +541,17 @@ const fitBinary = [
     ],
     // data activity
     [
-        0b00000110,      // header, 6, 0b00000110
-        54, 104, 66, 24, // timestamp
-        1, 0,            // num sessions
-        0,               // type
-        26,              // event
-        1,               // stop
+        0b00000110,        // header, 6, 0b00000110
+        136, 197, 223, 61, // timestamp
+        1, 0,              // num sessions
+        0,                 // type
+        26,                // event
+        1,                 // stop
     ],
     // crc, needs to be computed last evetytime when encoding to binary
     [
-        193,
-        3,
+        216,
+        74,
     ],
 ];
 // END Expected FIT binary

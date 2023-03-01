@@ -5,7 +5,7 @@ function CRCFactory(args = {}) {
     const _type = RecordType.crc;
 
     const size = 2;
-    const architecture = args.architecture;
+    const architecture = args.architecture ?? true;
 
     function toGetter(file) {
         if(isDataView(file)) {
@@ -18,18 +18,16 @@ function CRCFactory(args = {}) {
         };
     }
 
-    // uint8array | DataView, Int, Int -> u16
+    // DataView, Int, Int -> u16
     function calculateCRC(file, start, end) {
         const crcTable = [
             0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
             0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400,
         ];
 
-        const getter = toGetter(file);
-
         let crc = 0;
-        for (let i = start; i <= end; i++) {
-            const byte = getter(file, i);
+        for (let i = start; i < end; i++) {
+            const byte = file.getUint8(i, true);
             let tmp = crcTable[crc & 0xF];
             crc = (crc >> 4) & 0x0FFF;
             crc = crc ^ tmp ^ crcTable[byte & 0xF];
@@ -58,7 +56,7 @@ function CRCFactory(args = {}) {
     }
 
     function decode(view, i = 0) {
-        let value = view.getUint16(i, true);
+        let value = view.getUint16(i, architecture);
         return {type: _type, length: size, crc: value};
     }
 

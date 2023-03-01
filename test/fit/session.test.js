@@ -62,8 +62,8 @@ describe('Session Message', () => {
         local_number: 5,
         length: 41,
         fields: {
-            timestamp: 1038070838000, // 407005238, 54, 104, 66, 24,
-            start_time: 1038070835000, // 407005235, 51, 104, 66, 24,
+            timestamp:  1669140872000,
+            start_time: 1669140869000,
             total_elapsed_time: 3,
             total_timer_time: 3,
             message_index: 0,
@@ -110,25 +110,25 @@ describe('Session Message', () => {
     ];
 
     const dataRecordBinary = [
-        0b00000101,      // header, 5, 0b00000101
-        54, 104, 66, 24, // timestamp
-        51, 104, 66, 24, // start_time
-        184, 11, 0, 0,   // total_elapsed_time
-        184, 11, 0, 0,   // total_timer_time
-        0, 0,            // message_index
-        2,               // sport
-        58,              // sub_sport
-        40, 11, 0, 0,    // total_distance
-        107, 27,         // avg_speed
-        74, 29,          // max_speed
-        91,              // avg_heart_rate
-        93,              // max_heart_rate
-        71,              // avg_cadence
-        73,              // max_cadence
-        161, 0,          // avg_power
-        163, 0,          // max_power
-        0, 0,            // first_lap_index
-        1, 0,            // num_laps
+        0b00000101,        // header, 5, 0b00000101
+        136, 197, 223, 61, // timestamp
+        133, 197, 223, 61, // start_time
+        184, 11, 0, 0,     // total_elapsed_time
+        184, 11, 0, 0,     // total_timer_time
+        0, 0,              // message_index
+        2,                 // sport
+        58,                // sub_sport
+        40, 11, 0, 0,      // total_distance
+        107, 27,           // avg_speed
+        74, 29,            // max_speed
+        91,                // avg_heart_rate
+        93,                // max_heart_rate
+        71,                // avg_cadence
+        73,                // max_cadence
+        161, 0,            // avg_power
+        163, 0,            // max_power
+        0, 0,              // first_lap_index
+        1, 0,              // num_laps
     ];
 
     test('to FITjs definition message', () => {
@@ -169,4 +169,3 @@ describe('Session Message', () => {
         expect(dataviewToArray(res)).toEqual(dataRecordBinary);
     });
 });
-

@@ -36,7 +36,7 @@ describe('Activity Message', () => {
         local_number: 0,
         length: 12,
         fields: {
-            time_created: 1038070838000,
+            time_created: 1669140872000,
             manufacturer: 255,
             product:      0,
             number:       0,
@@ -58,12 +58,12 @@ describe('Activity Message', () => {
     ];
 
     const dataRecordBinary = [
-        0b00000000,      // header, 0, 0b00000000
-        54, 104, 66, 24, // time_created
-        255, 0,          // manufacturer
-        0, 0,            // product
-        0, 0,            // number
-        4,               // type
+        0b00000000,        // header, 0, 0b00000000
+        136, 197, 223, 61, // time_created
+        255, 0,            // manufacturer
+        0, 0,              // product
+        0, 0,              // number
+        4,                 // type
     ];
 
     test('to FITjs definition message', () => {
@@ -74,7 +74,7 @@ describe('Activity Message', () => {
     test('to FITjs data message', () => {
         const res = fit.dataRecord.toFITjs(
             definitionRecordJS, FileId({
-                time_created: 1038070838000,
+                time_created: 1669140872000,
             }),
         );
         expect(res).toEqual(dataRecordJS);
@@ -102,4 +102,3 @@ describe('Activity Message', () => {
         expect(dataviewToArray(res)).toEqual(dataRecordBinary);
     });
 });
-

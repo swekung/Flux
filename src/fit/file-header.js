@@ -53,7 +53,7 @@ function FileHeader(args = {}) {
     });
 
     const headerCRC = ValueParser({
-        encode: (view) => CRC.calculateCRC(view, 0, 11),
+        encode: (_, view) => CRC.calculateCRC(view, 0, 11),
     });
 
     const crcPresent = (headerSize) => equals(headerSize, 14) ? true : false;
@@ -91,12 +91,15 @@ function FileHeader(args = {}) {
     //  dataSize: Int,
     //  dataType: String,
     //  crc: Int
-    // } -> DataView
+    // },
+    // DataView,
+    // Int,
+    // -> DataView
     function encode(definition, view, i = 0) {
         return order.reduce(function(acc, fieldName) {
             const field = fields[fieldName];
             if(field.present(definition.headerSize)) {
-                const value = field.parser.encode(definition[fieldName] ?? acc.view);
+                const value = field.parser.encode(definition[fieldName], acc.view);
                 setView(field.type, value, acc.view, acc.i, architecture, false);
                 acc.i += field.size;
             }
@@ -104,7 +107,9 @@ function FileHeader(args = {}) {
         }, {i: 0, view: view}).view;
     };
 
-    // DataView -> FitRecord{
+    // DataView
+    //->
+    // FitRecord{
     //  type: Record.header,
     //  length: Int,
     //  headerSize: Int,
@@ -132,15 +137,19 @@ function FileHeader(args = {}) {
     }
 
     function toFITjs(args = {}) {
+        const headerSize = args.headerSize ?? 14;
+        const length = headerSize;
+        const crc = equals(headerSize, 14) ? (args.crc ?? 0) : undefined;
+
         return {
             type: _type,
-            length: args.headerSize ?? 14,
-            headerSize: args.headerSize ?? 14,
+            length,
+            headerSize,
             protocolVersion: args.protocolVersion ?? '2.0',
             profileVersion: args.profileVersion ?? '21.40',
-            dataSize: 0,
+            dataSize: args.dataSize ?? 0,
             dataType: '.FIT',
-            crc: undefined,
+            crc,
         };
     }
 

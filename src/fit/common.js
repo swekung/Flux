@@ -142,11 +142,11 @@ function FitNumber() {
     }
 
     function apply(scale, offset, value) {
-        return ((value ?? 0) * (scale ?? 1)) + (offset ?? 0);
+        return ((value ?? 0) * (scale ?? 1)) + ((offset ?? 0) * (scale ?? 1));
     }
 
     function remove(scale, offset, value) {
-        return ((value ?? 0) - (offset ?? 0)) / (scale ?? 1);
+        return ((value ?? 0) - ((offset ?? 0) * (scale ?? 1))) / (scale ?? 1);
     }
 
     // {base_type: BaseType, scale: Int, offset: Int}, Number, DataView, Int, Bool,

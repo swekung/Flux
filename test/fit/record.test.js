@@ -47,10 +47,10 @@ describe('Record Message', () => {
         local_number: 3,
         length: 28,
         fields: {
-            timestamp: 1038070835000,  // 407005235, 51, 104, 66, 24,
+            timestamp: 1669140869000,  // 1038075269, 133, 197, 223, 61,
             position_lat: -128450465,  // sint32, semicircles, 95, 0, 88, 248
             position_long: 1978610201, // sint32, semicircles, 25, 50, 239, 117
-            altitude: 87,              // uint16, scale 5, offset 500, m
+            altitude: 87,              // uint16, scale 5, offset 500, m,2935, 119, 11,
             heart_rate: 90,            // uint8, bpm
             cadence: 70,               // uint8, rpm
             distance: 7.66,            // uint32, scale 100, m
@@ -84,10 +84,10 @@ describe('Record Message', () => {
 
     const dataRecordBinary = [
         0b0000011,         // header
-        51, 104, 66, 24,   // timestamp
+        133, 197, 223, 61, // timestamp
         95, 0, 88, 248,    // position_lat
         25, 50, 239, 117,  // position_long
-        167, 3,            // altitude 935
+        119, 11,           // altitude 2935
         90,                // heart_rate
         70,                // cadence
         254, 2, 0, 0,      // distance
@@ -129,4 +129,3 @@ describe('Record Message', () => {
         expect(dataviewToArray(res)).toEqual(dataRecordBinary);
     });
 });
-

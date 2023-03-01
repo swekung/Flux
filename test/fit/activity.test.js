@@ -38,7 +38,7 @@ describe('Activity Message', () => {
         local_number: 6,
         length: 10,
         fields: {
-            timestamp: 1038070838000, // 407005238, 54, 104, 66, 24,
+            timestamp: 1669140872000,  // 1038075272, 136, 197, 223, 61,
             num_sessions: 1, //
             type: 0, // manual
             event: 26, // activity
@@ -60,12 +60,12 @@ describe('Activity Message', () => {
     ];
 
     const dataRecordBinary = [
-        0b00000110,      // header, 6, 0b00000110
-        54, 104, 66, 24, // timestamp
-        1, 0,            // num sessions
-        0,               // type
-        26,              // event
-        1,               // stop
+        0b00000110,        // header, 6, 0b00000110
+        136, 197, 223, 61, // timestamp
+        1, 0,              // num sessions
+        0,                 // type
+        26,                // event
+        1,                 // stop
     ];
 
     test('to FITjs definition message', () => {
@@ -76,11 +76,11 @@ describe('Activity Message', () => {
     test('to FITjs data message', () => {
         const res = fit.dataRecord.toFITjs(
             definitionRecordJS, {
-                timestamp: 1038070838000, // 407005238, 54, 104, 66, 24,
-                num_sessions: 1, //
-                type: 0, // manual
-                event: 26, // activity
-                event_type: 1, // stop
+                timestamp: 1669140872000, // 1038075272, 136, 197, 223, 61,
+                num_sessions: 1,          //
+                type: 0,                  // manual
+                event: 26,                // activity
+                event_type: 1,            // stop
             },
         );
         expect(res).toEqual(dataRecordJS);
@@ -108,4 +108,3 @@ describe('Activity Message', () => {
         expect(dataviewToArray(res)).toEqual(dataRecordBinary);
     });
 });
-
