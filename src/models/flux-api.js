@@ -1,4 +1,4 @@
-import { unwrap } from '../functions.js';
+import { expect } from '../functions.js';
 import { Url, BodyType, Res, Req, TextResponse, Endpoint } from './common.js';
 
 
@@ -7,7 +7,7 @@ function StravaTokenResponse() {
 }
 
 function Strava(args = {}) {
-    const baseUrl = unwrap(args.baseUrl);
+    const baseUrl = expect(args.baseUrl, 'Strava API needs base URL.');
 
     function authorizeUri() {
         return `${baseUrl}/api/v1/oauth/strava/authorize`;
