@@ -321,13 +321,13 @@ xf.reg('watch:elapsed', (x, db) => {
 
     const record = {
         timestamp:  Date.now(),
-        power:      db.power1s,
-        cadence:    db.cadence,
-        speed:      speed,
+        altitude:   db.altitude,
         heart_rate: db.heartRate,
+        cadence:    db.cadence,
+        power:      db.power1s,
+        speed:      speed,
         distance:   db.distance,
         grade:      db.slopeTarget,
-        altitude:   db.altitude,
 
         device_index:                 0,
         saturated_hemoglobin_percent: db.smo2,

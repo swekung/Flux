@@ -11,8 +11,7 @@ import { uuid } from '../storage/uuid.js';
 import { workouts as workoutsFile }  from '../workouts/workouts.js';
 import { zwo } from '../workouts/zwo.js';
 import { fileHandler } from '../file.js';
-// import { FIT } from '../fit/fit.js';
-import { localActivity } from '../fit/activity.js';
+import { fit } from '../fit/fit.js';
 import { course } from '../fit/course.js';
 import { Model as Cycling } from '../physics.js';
 import { fluxApi as api } from './api.js';
@@ -517,9 +516,24 @@ class Workout extends Model {
         const now = new Date();
         return `workout-${dateToDashString(now)}.fit`;
     }
+    toFitRecordData(record) {
+        return record;
+    }
+    toFitLapData(lap) {
+        return {
+            start_time:         lap.startTime,
+            timestamp:          lap.timestamp,
+            total_elapsed_time: lap.totalElapsedTime,
+            total_timer_time:   lap.totalElapsedTime,
+        };
+    }
     encode(db) {
-        const fitjsActivity = activity.encode({records: db.records, laps: db.laps});
-        return fit.activity.encode(fitjsActivity);
+        const fitjsActivity = fit.localActivity.encode({
+            records: db.records.map(this.toFitRecordData),
+            laps: db.laps.map(this.toFitLapData),
+        });
+
+        return fitjsActivity;
     }
     download(activity) {
         const self = this;
@@ -570,9 +584,7 @@ class Workouts extends Model {
     async restore() {
         const self = this;
         const res = await self.fetchWorkouts();
-        console.log(res);
         const resCreateActivity = await api.createActivity({activity: "activity"});
-        console.log(resCreateActivity);
         return res;
     }
     get(workouts, id) {
